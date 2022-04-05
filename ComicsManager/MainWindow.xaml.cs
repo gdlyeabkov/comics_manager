@@ -34,6 +34,7 @@ namespace ComicsManager
         public bool isFrameSelected = false;
         public Point lastDragerPoint = new Point(0, 0);
         public List<Rectangle> dragers;
+        public const double markerThickness = 10.0;
         public SpeechSynthesizer debugger;
 
         public MainWindow()
@@ -214,7 +215,6 @@ namespace ComicsManager
             bool isMarkerTool = activeTool == "Раскрасить маркером";
             bool isWhitewashTool = activeTool == "Замазать белилами";
             bool isPencilTool = activeTool == "Рисовать раскадровку";
-            // bool isPencilTool = true;
             if (isPenTool)
             {
                 sketch = new Polyline();
@@ -237,8 +237,6 @@ namespace ComicsManager
                 bubble.VerticalAlignment = VerticalAlignment.Center;
                 ImageBrush bubbleBrush = new ImageBrush();
                 bubbleBrush.ImageSource = ((Image)(selectedBubblesBoxItem.Content)).Source;
-                Transform bubbleBrushTransform = new ScaleTransform();
-                bubbleBrush.Transform = bubbleBrushTransform;
                 bubble.Background = bubbleBrush;
                 bubble.Width = 150;
                 bubble.Height = 150;
@@ -253,7 +251,7 @@ namespace ComicsManager
                 PointCollection pointCollection = new PointCollection();
                 sketch.Points = pointCollection;
                 sketch.Stroke = new SolidColorBrush(markerColorPicker.SelectedColor.Value);
-                sketch.StrokeThickness = 10.0;
+                sketch.StrokeThickness = markerThickness;
                 manuscript.Children.Add(sketch);
             }
             else if (isWhitewashTool)
@@ -389,8 +387,17 @@ namespace ComicsManager
             if (isSelectFrameTool)
             {
                 EnterToFrame(selectedFrame);
+                UpdateScreenTonesTool(selectedFrame);
             }
         }
+
+        public void UpdateScreenTonesTool(Polygon selectedFrame)
+        {
+            Brush frameBrush = selectedFrame.Fill;
+            bool isScreenTonesApplied = frameBrush is ImageBrush;
+            screenTonesTool.IsChecked = isScreenTonesApplied;
+        }
+
         public void EnterToFrame(Polygon selectedFrame)
         {
             PointCollection framePoints = new PointCollection();
@@ -725,7 +732,10 @@ namespace ComicsManager
                             string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
                             string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
                             string rawManuscriptItemPointData = rawManuscriptItemPointX + ":" + rawManuscriptItemPointY;
-                            rawManuscriptPolylinesContentItem += rawManuscriptItemPointData;
+                            // rawManuscriptPolylinesContentItem += rawManuscriptItemPointData;
+                            string rawManuscriptItemBrushData = manuscriptPolylineItem.Stroke.ToString();
+                            string rawManuscriptItemData = rawManuscriptItemPointData + ":" + rawManuscriptItemBrushData;
+                            rawManuscriptPolylinesContentItem += rawManuscriptItemData;
                             if (manuscriptItemPointIndex < lastPointIndex)
                             {
                                 rawManuscriptPolylinesContentItem += "|";
@@ -766,12 +776,61 @@ namespace ComicsManager
                             {
                                 rawManuscriptPolygonesContentItem += "|";
                             }
+                            else
+                            {
+                                string rawManuscriptItemBrush = "|";
+                                Brush manuscriptPolygonItemFill = manuscriptPolygonItem.Fill;
+                                if (manuscriptPolygonItemFill is ImageBrush)
+                                {
+                                    ImageBrush manuscriptPolygonItemScreenTone = manuscriptPolygonItemFill as ImageBrush;
+                                    Uri manuscriptPolygonItemScreenToneSource = ((BitmapImage)(manuscriptPolygonItemScreenTone.ImageSource)).UriSource;
+                                    rawManuscriptItemBrush += manuscriptPolygonItemScreenToneSource.ToString();
+                                }
+                                rawManuscriptPolygonesContentItem += rawManuscriptItemBrush;
+                            }
                         }
                         rawManuscriptPolygonesContent += rawManuscriptPolygonesContentItem;
                     }
                 }
-
-                string chapterRawDataContent = storyBoardDescBoxContent + "\n" + rawStoryBoardVisualContent + "\n" + rawManuscriptPolylinesContent + "\n" + rawManuscriptPolygonesContent;
+                bool isFlashBack = false;
+                isFlashBack = ((bool)(flashBackTool.IsChecked));
+                string rawManuscriptFlashBackContent = isFlashBack.ToString();
+                string rawManuscriptBubblesContent = "";
+                foreach (UIElement manuscriptItem in manuscript.Children)
+                {
+                    bool isTextBox = manuscriptItem is TextBox;
+                    if (isTextBox)
+                    {
+                        TextBox manuscriptTextBoxItem = manuscriptItem as TextBox;
+                        manuscriptItemIndex++;
+                        string rawManuscriptTextboxesContentItem = "";
+                        if (manuscriptItemIndex >= 1)
+                        {
+                            rawManuscriptTextboxesContentItem += "@";
+                        }
+                        int manuscriptItemPointX = ((int)(Canvas.GetLeft(manuscriptTextBoxItem)));
+                        int manuscriptItemPointY = ((int)(Canvas.GetTop(manuscriptTextBoxItem)));
+                        string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
+                        string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
+                        string rawManuscriptItemPointData = rawManuscriptItemPointX + "|" + rawManuscriptItemPointY;
+                        rawManuscriptTextboxesContentItem += rawManuscriptItemPointData;
+                        string rawManuscriptItemTextData = manuscriptTextBoxItem.Text.Replace(System.Environment.NewLine, "~");
+                        string rawManuscriptItemWidth = ((int)(manuscriptTextBoxItem.Width)).ToString();
+                        string rawManuscriptItemHeight = ((int)(manuscriptTextBoxItem.Height)).ToString();
+                        string rawManuscriptItemSizeData = rawManuscriptItemWidth + "|" + rawManuscriptItemHeight;
+                        rawManuscriptTextboxesContentItem += "|";
+                        rawManuscriptTextboxesContentItem += rawManuscriptItemSizeData;
+                        rawManuscriptTextboxesContentItem += "|";
+                        rawManuscriptTextboxesContentItem += rawManuscriptItemTextData;
+                        string rawManuscriptItemBrush = "|";
+                        ImageBrush manuscriptTextBoxItemFill = ((ImageBrush)(manuscriptTextBoxItem.Background));
+                        Uri manuscriptTextBoxItemBubbleSource = ((BitmapImage)(manuscriptTextBoxItemFill.ImageSource)).UriSource;
+                        rawManuscriptItemBrush += manuscriptTextBoxItemBubbleSource.ToString();
+                        rawManuscriptTextboxesContentItem += rawManuscriptItemBrush;
+                        rawManuscriptBubblesContent += rawManuscriptTextboxesContentItem;
+                    }
+                }
+                string chapterRawDataContent = storyBoardDescBoxContent + "\n" + rawStoryBoardVisualContent + "\n" + rawManuscriptPolygonesContent + "\n" + rawManuscriptPolylinesContent + "\n" + rawManuscriptFlashBackContent + "\n" + rawManuscriptBubblesContent;
                 File.WriteAllText(fullPath, chapterRawDataContent);
             }
         }
@@ -779,6 +838,7 @@ namespace ComicsManager
         private void OpenChapterHandler(object sender, RoutedEventArgs e)
         {
             OpenChapter();
+            polygon = null;
         }
 
         public void OpenChapter()
@@ -797,8 +857,10 @@ namespace ComicsManager
                     rawChapterDataItemIndex++;
                     bool isStoryboardDescContent = rawChapterDataItemIndex == 0;
                     bool isStoryboardVisualContent = rawChapterDataItemIndex == 1;
-                    bool isManuscriptPolylinesContent = rawChapterDataItemIndex == 2;
-                    bool isManuscriptPolygonesContent = rawChapterDataItemIndex == 3;
+                    bool isManuscriptPolygonesContent = rawChapterDataItemIndex == 2;
+                    bool isManuscriptPolylinesContent = rawChapterDataItemIndex == 3;
+                    bool isManuscriptFlashBackContent = rawChapterDataItemIndex == 4;
+                    bool isManuscriptBubblesContent = rawChapterDataItemIndex == 5;
                     if (isStoryboardDescContent)
                     {
                         storyBoardDescBox.Text = rawChapterDataItem;
@@ -840,44 +902,6 @@ namespace ComicsManager
                             }
                         }
                     }
-                    else if (isManuscriptPolylinesContent)
-                    {
-                        string formatedRawChapterDataItem = rawChapterDataItem;
-                        bool isErrorsDetected = formatedRawChapterDataItem.Contains("@@");
-                        if (isErrorsDetected)
-                        {
-                            formatedRawChapterDataItem = rawChapterDataItem.Replace("@@", "@");
-                        }
-                        string[] rawLines = formatedRawChapterDataItem.Split(new Char[] { '@' });
-                        int countRawLines = rawLines.Length;
-                        bool isRawDataDetected = formatedRawChapterDataItem.Length >= 2;
-                        if (isRawDataDetected)
-                        {
-                            foreach (string rawLine in rawLines)
-                            {
-                                Polyline line = new Polyline();
-                                string[] rawLinePoints = rawLine.Split(new Char[] { '|' });
-                                foreach (string rawLinePoint in rawLinePoints)
-                                {
-                                    string[] rawLinePointCoords = rawLinePoint.Split(new Char[] { ':' });
-                                    string rawLinePointXCoord = rawLinePointCoords[0];
-                                    string rawLinePointYCoord = rawLinePointCoords[1];
-                                    int linePointXCoordDouble = 0;
-                                    int linePointYCoordDouble = 0;
-                                    bool isGetXCoord = Int32.TryParse(rawLinePointXCoord, out linePointXCoordDouble);
-                                    bool isGetYCoord = Int32.TryParse(rawLinePointYCoord, out linePointYCoordDouble);
-                                    Point linePoint = new Point(linePointXCoordDouble, linePointYCoordDouble);
-                                    if (isGetXCoord && isGetYCoord)
-                                    {
-                                        line.Points.Add(linePoint);
-                                    }
-                                }
-                                line.Stroke = System.Windows.Media.Brushes.Black;
-                                manuscript.Children.Add(line);
-                                // debugger.Speak("Добавляю точку");
-                            }
-                        }
-                    }
                     else if (isManuscriptPolygonesContent)
                     {
                         string formatedRawChapterDataItem = rawChapterDataItem;
@@ -888,38 +912,238 @@ namespace ComicsManager
                         }
                         string[] rawLines = formatedRawChapterDataItem.Split(new Char[] { '@' });
                         int countRawLines = rawLines.Length;
-                        // bool isRawDataDetected = countRawLines >= 2;
                         bool isRawDataDetected = countRawLines >= 1;
                         if (isRawDataDetected)
                         {
                             foreach (string rawLine in rawLines)
                             {
-                                Polygon line = new Polygon();
                                 string[] rawLinePoints = rawLine.Split(new Char[] { '|' });
-                                foreach (string rawLinePoint in rawLinePoints)
+                                int countFramePoints = rawLinePoints.Length;
+                                bool isFrameValid = countFramePoints >= 3;
+                                if (isFrameValid)
                                 {
-                                    string[] rawLinePointCoords = rawLinePoint.Split(new Char[] { ':' });
-                                    string rawLinePointXCoord = rawLinePointCoords[0];
-                                    string rawLinePointYCoord = rawLinePointCoords[1];
-                                    int linePointXCoordDouble = 0;
-                                    int linePointYCoordDouble = 0;
-                                    bool isGetXCoord = Int32.TryParse(rawLinePointXCoord, out linePointXCoordDouble);
-                                    bool isGetYCoord = Int32.TryParse(rawLinePointYCoord, out linePointYCoordDouble);
-                                    Point linePoint = new Point(linePointXCoordDouble, linePointYCoordDouble);
-                                    if (isGetXCoord && isGetYCoord)
+                                    int rawLinePointIndex = -1;
+                                    Polygon line = new Polygon();
+                                    foreach (string rawLinePoint in rawLinePoints)
                                     {
-                                        line.Points.Add(linePoint);
+                                        rawLinePointIndex++;
+                                        if (rawLinePointIndex < rawLinePoints.Length - 1)
+                                        {
+                                            string[] rawLinePointCoords = rawLinePoint.Split(new Char[] { ':' });
+                                            string rawLinePointXCoord = rawLinePointCoords[0];
+                                            string rawLinePointYCoord = rawLinePointCoords[1];
+                                            string rawLineSource = rawLinePointCoords[1];
+                                            int linePointXCoordDouble = 0;
+                                            int linePointYCoordDouble = 0;
+                                            bool isGetXCoord = Int32.TryParse(rawLinePointXCoord, out linePointXCoordDouble);
+                                            bool isGetYCoord = Int32.TryParse(rawLinePointYCoord, out linePointYCoordDouble);
+                                            Point linePoint = new Point(linePointXCoordDouble, linePointYCoordDouble);
+                                            if (isGetXCoord && isGetYCoord)
+                                            {
+                                                line.Points.Add(linePoint);
+                                            }
+                                        }
                                     }
+                                    line.Stroke = System.Windows.Media.Brushes.Black;
+                                    int selectedScreenTonesBoxItemIndex = screenTonesBox.SelectedIndex;
+                                    ItemCollection screenTonesBoxItems = screenTonesBox.Items;
+                                    ComboBoxItem selectedScreenTonesBoxItem = ((ComboBoxItem)(screenTonesBoxItems[selectedScreenTonesBoxItemIndex]));
+                                    string rawSource = rawLinePoints[rawLinePoints.Length - 1];
+                                    if (rawSource.Length >= 1)
+                                    {
+                                        int index = -1;
+                                        foreach (ComboBoxItem screenTonesBoxItem in screenTonesBox.Items)
+                                        {
+                                            index++;
+                                            Image currentImage = ((Image)(screenTonesBoxItem.Content));
+                                            BitmapImage currentImageSource = ((BitmapImage)(currentImage.Source));
+                                            Uri currentImageSourceUri = currentImageSource.UriSource;
+                                            string rawCurrentImageSourceUri = currentImageSourceUri.ToString();
+                                            bool isSourcesMatches = rawCurrentImageSourceUri == rawSource;
+                                            if (isSourcesMatches) {
+                                                selectedScreenTonesBoxItemIndex = index;
+                                                break;
+                                            }
+                                        }
+                                        bool isSourceDetected = selectedScreenTonesBoxItemIndex >= 0;
+                                        if (isSourceDetected)
+                                        {
+                                            var selectedItem = screenTonesBoxItems[selectedScreenTonesBoxItemIndex];
+                                            selectedScreenTonesBoxItem = ((ComboBoxItem)(selectedItem));
+                                            var selectedScreenTonesBoxItemContent = selectedScreenTonesBoxItem.Content;
+                                            Image selectedScreenTonesBoxItemImgContent = ((Image)(selectedScreenTonesBoxItemContent));
+                                            ImageSource imageSource = selectedScreenTonesBoxItemImgContent.Source;
+                                            ImageBrush frameBrush = new ImageBrush(imageSource);
+                                            line.Fill = frameBrush;
+                                        }
+                                        else
+                                        {
+                                            Brush frameBrush = System.Windows.Media.Brushes.White;
+                                            line.Fill = frameBrush;
+                                        }
+                                    
+                                    }
+                                    else
+                                    {
+                                        line.Fill = System.Windows.Media.Brushes.White;
+                                    }
+                                    manuscript.Children.Add(line);
+                                    line.MouseLeftButtonUp += SelectFrameHandler;
                                 }
-                                line.Stroke = System.Windows.Media.Brushes.Black;
-                                int selectedScreenTonesBoxItemIndex = screenTonesBox.SelectedIndex;
-                                ItemCollection screenTonesBoxItems = screenTonesBox.Items;
-                                ComboBoxItem selectedScreenTonesBoxItem = ((ComboBoxItem)(screenTonesBoxItems[selectedScreenTonesBoxItemIndex]));
-                                ImageSource imageSource = ((Image)(selectedScreenTonesBoxItem.Content)).Source;
-                                ImageBrush frameBrush = new ImageBrush(imageSource);
-                                line.Fill = frameBrush;
-                                manuscript.Children.Add(line);
-                                // debugger.Speak("Добавляю точку");
+                            }
+                        }
+                    }
+                    else if (isManuscriptPolylinesContent)
+                    {
+                        string formatedRawChapterDataItem = rawChapterDataItem;
+                        bool isErrorsDetected = formatedRawChapterDataItem.Contains("@@");
+                        if (isErrorsDetected)
+                        {
+                            formatedRawChapterDataItem = rawChapterDataItem.Replace("@@", "@");
+                        }
+                        string[] rawLines = formatedRawChapterDataItem.Split(new Char[] { '@' });
+                        int countRawLines = rawLines.Length;
+                        // bool isRawDataDetected = countRawLines >= 1;
+                        bool isRawDataDetected = true;
+                        if (isRawDataDetected)
+                        {
+                            foreach (string rawLine in rawLines)
+                            {
+                                if (rawLine.Length >= 2)
+                                {
+                                    Polyline line = new Polyline();
+                                    string[] rawLinePoints = rawLine.Split(new Char[] { '|' });
+                                    string rawLineBrush = "Black";
+                                    foreach (string rawLinePoint in rawLinePoints)
+                                    {
+                                        string[] rawLinePointCoords = rawLinePoint.Split(new Char[] { ':' });
+                                        string rawLinePointXCoord = rawLinePointCoords[0];
+                                        string rawLinePointYCoord = rawLinePointCoords[1];
+                                        rawLineBrush = rawLinePointCoords[2];
+                                        int linePointXCoordDouble = 0;
+                                        int linePointYCoordDouble = 0;
+                                        bool isGetXCoord = Int32.TryParse(rawLinePointXCoord, out linePointXCoordDouble);
+                                        bool isGetYCoord = Int32.TryParse(rawLinePointYCoord, out linePointYCoordDouble);
+                                        Point linePoint = new Point(linePointXCoordDouble, linePointYCoordDouble);
+                                        if (isGetXCoord && isGetYCoord)
+                                        {
+                                            line.Points.Add(linePoint);
+                                        }
+                                    }
+                                    line.Stroke = System.Windows.Media.Brushes.Black;
+                                    BrushConverter brushConverter = new BrushConverter();
+                                    Brush brush = ((Brush)(brushConverter.ConvertFrom(rawLineBrush)));
+                                    line.Stroke = brush;
+                                    bool isNotWhiteBrush = rawLineBrush != "#FFFFFFFF";
+                                    bool isNotBlackBrush = rawLineBrush != "#FF000000";
+                                    bool isMarker = isNotWhiteBrush && isNotBlackBrush;
+                                    if (isMarker)
+                                    {
+                                        line.StrokeThickness = markerThickness;
+                                    }
+                                    manuscript.Children.Add(line);
+                                }
+                            }
+                        }
+                    }
+                    else if (isManuscriptFlashBackContent)
+                    {
+                        bool isFlashBack = false;
+                        isFlashBack = Boolean.Parse(rawChapterDataItem);
+                        if (isFlashBack)
+                        {
+                            manuscript.Background = System.Windows.Media.Brushes.Black;
+                            flashBackTool.IsChecked = true;
+                        }
+
+                    }
+                    else if (isManuscriptBubblesContent)
+                    {
+                        string formatedRawChapterDataItem = rawChapterDataItem;
+                        bool isErrorsDetected = formatedRawChapterDataItem.Contains("@@");
+                        if (isErrorsDetected)
+                        {
+                            formatedRawChapterDataItem = rawChapterDataItem.Replace("@@", "@");
+                        }
+                        string[] rawBubbles = formatedRawChapterDataItem.Split(new Char[] { '@' });
+                        int countRawBubbles = rawBubbles.Length;
+                        bool isRawDataDetected = countRawBubbles >= 1;
+                        if (isRawDataDetected)
+                        {
+                            foreach (string rawBubble in rawBubbles)
+                            {
+                                TextBox bubble = new TextBox();
+                                bubble.TextWrapping = TextWrapping.Wrap;
+                                bubble.BorderThickness = new Thickness(0);
+                                bubble.AcceptsReturn = true;
+                                bubble.TextAlignment = TextAlignment.Center;
+                                bubble.VerticalContentAlignment = VerticalAlignment.Center;
+                                bubble.VerticalAlignment = VerticalAlignment.Center;
+                                ImageBrush bubbleBrush = new ImageBrush();
+                                bubble.Background = bubbleBrush;
+                                string[] rawBubbleData = rawBubble.Split(new Char[] { '|' });
+                                if (rawBubbleData.Length >= 2)
+                                {
+                                    string rawBubbleDataXCoord = rawBubbleData[0];
+                                    string rawBubbleDataYCoord = rawBubbleData[1];
+                                    string rawBubbleDataWidth = rawBubbleData[2];
+                                    string rawBubbleDataHeight = rawBubbleData[3];
+                                    string rawBubbleDataText = rawBubbleData[4].Replace("~", System.Environment.NewLine);
+                                    string rawSource = rawBubbleData[5];
+                                    int bubbleXCoordDouble = 0;
+                                    int bubbleYCoordDouble = 0;
+                                    int bubbleWidth = 0;
+                                    int bubbleHeight = 0;
+                                    bool isGetXCoord = Int32.TryParse(rawBubbleDataXCoord, out bubbleXCoordDouble);
+                                    bool isGetYCoord = Int32.TryParse(rawBubbleDataYCoord, out bubbleYCoordDouble);
+                                    bool isGetWidth = Int32.TryParse(rawBubbleDataWidth, out bubbleWidth);
+                                    bool isGetHeight = Int32.TryParse(rawBubbleDataHeight, out bubbleHeight);
+                                    bubble.Text = rawBubbleDataText;
+                                    manuscript.Children.Add(bubble);
+                                    if (isGetXCoord && isGetYCoord && isGetWidth && isGetHeight)
+                                    {
+                                        Canvas.SetLeft(bubble, bubbleXCoordDouble);
+                                        Canvas.SetTop(bubble, bubbleYCoordDouble);
+                                        bubble.Width = bubbleWidth;
+                                        bubble.Height = bubbleHeight;
+                                        bubble.Padding = new Thickness(35);
+                                    }
+                                    else
+                                    {
+                                        Canvas.SetLeft(bubble, 0);
+                                        Canvas.SetTop(bubble, 0);
+                                        bubble.Width = 150;
+                                        bubble.Height = 150;
+                                    }
+                                    ItemCollection bubblesBoxItems = bubblesBox.Items;
+                                    int selectedScreenTonesBoxItemIndex = 0;
+                                    int index = -1;
+                                    foreach (ComboBoxItem bubblesBoxItem in bubblesBoxItems)
+                                    {
+                                        index++;
+                                        Image currentImage = ((Image)(bubblesBoxItem.Content));
+                                        BitmapImage currentImageSource = ((BitmapImage)(currentImage.Source));
+                                        Uri currentImageSourceUri = currentImageSource.UriSource;
+                                        string rawCurrentImageSourceUri = currentImageSourceUri.ToString();
+                                        bool isSourcesMatches = rawCurrentImageSourceUri == rawSource;
+                                        if (isSourcesMatches)
+                                        {
+                                            selectedScreenTonesBoxItemIndex = index;
+                                            break;
+                                        }
+                                    }
+                                    var selectedItem = bubblesBoxItems[selectedScreenTonesBoxItemIndex];
+                                    ComboBoxItem selectedBubblesBoxItem = ((ComboBoxItem)(selectedItem));
+                                    var selectedBubblesBoxItemContent = selectedBubblesBoxItem.Content;
+                                    Image selectedBubblesBoxItemImgContent = ((Image)(selectedBubblesBoxItemContent));
+                                    ImageSource imageSource = selectedBubblesBoxItemImgContent.Source;
+                                    ImageBrush frameBrush = new ImageBrush(imageSource);
+                                    bubble.Background = frameBrush;
+
+                                    bubble.MouseLeftButtonUp += SelectBubbleHandler;
+                                    bubble.LostKeyboardFocus += BubbleLostFocusHandler;
+
+                                }
                             }
                         }
                     }

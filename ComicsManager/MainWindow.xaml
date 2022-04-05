@@ -101,8 +101,15 @@
                                 <ComboBoxItem.Content>
                                     <Image
                                         Width="100"
-                                        Height="100" Source="Assets\bubble_1.png"
-                                    />
+                                        Height="100"
+                                    >
+
+                                        <Image.Source>
+                                            <BitmapImage
+                                                UriSource="Assets\bubble_1.png"
+                                            />
+                                        </Image.Source>
+                                    </Image>
                                 </ComboBoxItem.Content>
                             </ComboBoxItem>
                             <ComboBoxItem>
@@ -184,6 +191,7 @@
                             Click="SelectToolHandler"
                         />
                         <ToggleButton
+                            x:Name="screenTonesTool"
                             Content="Скринтоны"
                             Height="25"
                             Margin="5 0"
