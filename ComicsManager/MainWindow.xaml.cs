@@ -36,6 +36,8 @@ namespace ComicsManager
         public List<Rectangle> dragers;
         public const double markerThickness = 10.0;
         public SpeechSynthesizer debugger;
+        public System.Windows.Shapes.Path path;
+        public PolyBezierSegment segment;
 
         public MainWindow()
         {
@@ -77,6 +79,7 @@ namespace ComicsManager
             bool isGenerateFrameTool = activeTool == "Создать кадр";
             bool isApplyEffectTool = activeTool == "Добавить эффект";
             bool isBubbleTool = activeTool == "Добавить бабл";
+            bool isSetBubbleDirectionTool = activeTool == "Задать направление бабла";
             if (isGenerateFrameTool)
             {
                 bool isPolygonExists = polygon != null;
@@ -210,6 +213,9 @@ namespace ComicsManager
 
         private void TouchDownHandler(object sender, MouseButtonEventArgs e)
         {
+            Point currentPosition = Mouse.GetPosition(manuscript);
+            double coordX = currentPosition.X;
+            double coordY = currentPosition.Y;
             bool isPenTool = activeTool == "Рисование пером";
             bool isBubbleTool = activeTool == "Добавить бабл";
             bool isMarkerTool = activeTool == "Раскрасить маркером";
@@ -244,6 +250,14 @@ namespace ComicsManager
                 manuscript.Children.Add(bubble);
                 bubble.MouseLeftButtonUp += SelectBubbleHandler;
                 bubble.LostKeyboardFocus += BubbleLostFocusHandler;
+                if (((int)(selectedBubblesBoxItemIndex)) != 4)
+                {
+                    bubble.DataContext = ((int)(selectedBubblesBoxItemIndex));
+                }
+                else
+                {
+                    bubble.DataContext = new System.Windows.Shapes.Path();
+                }
             }
             else if (isMarkerTool)
             {
@@ -278,10 +292,8 @@ namespace ComicsManager
                     sketch.Points = pointCollection;
                     sketch.Stroke = System.Windows.Media.Brushes.Black;
                     storyBoard.Children.Add(sketch);
-                    // debugger.Speak("Добавляю точку");
                 }
             }
-
         }
 
         private void BubbleLostFocusHandler(object sender, KeyboardFocusChangedEventArgs e)
@@ -290,11 +302,6 @@ namespace ComicsManager
             selectedBubble.IsReadOnly = true;
             selectedBubble.BorderBrush = System.Windows.Media.Brushes.Transparent;
             selectedBubble.BorderThickness = new Thickness(0.0);
-            /*dragers[0].Fill = System.Windows.Media.Brushes.Transparent;
-            dragers[1].Fill = System.Windows.Media.Brushes.Transparent;
-            dragers[2].Fill = System.Windows.Media.Brushes.Transparent;
-            dragers[3].Fill = System.Windows.Media.Brushes.Transparent;*/
-
         }
 
         private void TouchMoveHandler(object sender, MouseEventArgs e)
@@ -312,7 +319,8 @@ namespace ComicsManager
                 bool isMarkerTool = activeTool == "Раскрасить маркером";
                 bool isWhitewashTool = activeTool == "Замазать белилами";
                 bool isPencilTool = activeTool == "Рисовать раскадровку";
-                // bool isPencilTool = true;
+                bool isSetBubbleDirectionTool = activeTool == "Задать направление бабла";
+                bool isCreateFramesTool = activeTool == "Заполнить страницу кадрами";
                 if (isPenTool)
                 {
                     PointCollection pointCollection = sketch.Points;
@@ -321,8 +329,53 @@ namespace ComicsManager
                 }
                 else if (isBubbleTool)
                 {
-                    Canvas.SetLeft(bubble, coordX);
-                    Canvas.SetTop(bubble, coordY);
+                    bool isBubbleExists = bubble != null;
+                    if (isBubbleExists)
+                    {
+                        double startX = Canvas.GetLeft(bubble);
+                        double startY = Canvas.GetTop(bubble);
+                        Canvas.SetLeft(bubble, coordX);
+                        Canvas.SetTop(bubble, coordY);
+                        if (bubble.DataContext is System.Windows.Shapes.Path)
+                        {
+                            Point startBubbleDirectionPoint = new Point(currentPosition.X - 10, currentPosition.Y);
+                            Point endBubbleDirectionPoint = new Point(currentPosition.X + 10, currentPosition.Y);
+                            System.Windows.Shapes.Path path = ((System.Windows.Shapes.Path)(bubble.DataContext));
+                            PathGeometry pathGeometry = ((PathGeometry)(path.Data));
+                            bool isPathGeometryExists = pathGeometry != null;
+                            if (isPathGeometryExists) {
+                                double deltaX = coordX - startX;
+                                double deltaY = coordY - startY;
+                                PathFigureCollection pathFigures = ((PathFigureCollection)(pathGeometry.Figures));
+                                PathFigure pathFigure = ((PathFigure)(pathFigures[0]));
+                                PathSegmentCollection pathSegments = ((PathSegmentCollection)(pathFigure.Segments));
+                                PolyBezierSegment bubbleDirectionSegment = ((PolyBezierSegment)(pathSegments[0]));
+                                Point bubbleDirectionSegmentFirstPoint = bubbleDirectionSegment.Points[0];
+                                Point bubbleDirectionSegmentSecondPoint = bubbleDirectionSegment.Points[1];
+                                Point bubbleDirectionSegmentThirdPoint = bubbleDirectionSegment.Points[2];
+                                double bubbleDirectionSegmentFirstPointX = bubbleDirectionSegmentFirstPoint.X;
+                                double bubbleDirectionSegmentFirstPointY = bubbleDirectionSegmentFirstPoint.Y;
+                                double bubbleDirectionSegmentSecondPointX = bubbleDirectionSegmentSecondPoint.X;
+                                double bubbleDirectionSegmentSecondPointY = bubbleDirectionSegmentSecondPoint.Y;
+                                double bubbleDirectionSegmentThirdPointX = bubbleDirectionSegmentThirdPoint.X;
+                                double bubbleDirectionSegmentThirdPointY = bubbleDirectionSegmentThirdPoint.Y;
+                                double updatedBubbleDirectionSegmentFirstPointX = bubbleDirectionSegmentFirstPointX + deltaX;
+                                double updatedBubbleDirectionSegmentFirstPointY = bubbleDirectionSegmentFirstPointY + deltaY;
+                                double updatedBubbleDirectionSegmentSecondPointX = bubbleDirectionSegmentSecondPointX + deltaX;
+                                double updatedBubbleDirectionSegmentSecondPointY = bubbleDirectionSegmentSecondPointY + deltaY;
+                                double updatedBubbleDirectionSegmentThirdPointX = bubbleDirectionSegmentThirdPointX + deltaX;
+                                double updatedBubbleDirectionSegmentThirdPointY = bubbleDirectionSegmentThirdPointY + deltaY;
+                                Point updatedBubbleDirectionSegmentFirstPoint = new Point(updatedBubbleDirectionSegmentFirstPointX, updatedBubbleDirectionSegmentFirstPointY);
+                                Point updatedBubbleDirectionSegmentSecondPoint = new Point(updatedBubbleDirectionSegmentSecondPointX, updatedBubbleDirectionSegmentSecondPointY);
+                                Point updatedBubbleDirectionSegmentThirdPoint = new Point(updatedBubbleDirectionSegmentThirdPointX, updatedBubbleDirectionSegmentThirdPointY);
+                                pathFigures[0].StartPoint = updatedBubbleDirectionSegmentFirstPoint;
+                                bubbleDirectionSegment.Points[0] = updatedBubbleDirectionSegmentFirstPoint;
+                                bubbleDirectionSegment.Points[1] = updatedBubbleDirectionSegmentSecondPoint;
+                                bubbleDirectionSegment.Points[2] = updatedBubbleDirectionSegmentThirdPoint;
+
+                            }
+                        }
+                    }
                 }
                 else if (isMarkerTool)
                 {
@@ -345,6 +398,31 @@ namespace ComicsManager
                     PointCollection pointCollection = sketch.Points;
                     pointCollection.Add(currentPosition);
                     sketch.Points = pointCollection;
+                }
+                else if (isSetBubbleDirectionTool)
+                {
+                    bool isBubbleExists = bubble != null;
+                    if (isBubbleExists)
+                    {
+                        bool isSegmentExists = segment != null;
+                        if (isSegmentExists)
+                        {
+                            bool isPointsExists = segment.Points.Count >= 3;
+                            if (isPointsExists)
+                            {
+                                object bubbleData = bubble.DataContext;
+                                bool isDirectionalBubble = bubbleData is System.Windows.Shapes.Path;
+                                if (isDirectionalBubble)
+                                {
+                                    segment.Points[1] = currentPosition;
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (isCreateFramesTool)
+                {
+                    
                 }
             }
 
@@ -426,6 +504,7 @@ namespace ComicsManager
         public void SelectBubble(TextBox selectedBubble)
         {
             bool isEditBubbleTool = activeTool == "Редактировать содержмое бабла";
+            bool isSetBubbleDirectionTool = activeTool == "Задать направление бабла";
             if (isEditBubbleTool)
             {
                 selectedBubble.IsReadOnly = false;
@@ -474,6 +553,49 @@ namespace ComicsManager
 
                 bubble = selectedBubble;
 
+            }
+            else if (isSetBubbleDirectionTool)
+            {
+                Point currentPosition = Mouse.GetPosition(manuscript);
+                double coordX = currentPosition.X;
+                double coordY = currentPosition.Y;
+                object bubbleData = bubble.DataContext;
+                /*int bubbleType = ((int)(bubbleData));
+                bool isDirectionalBubble = bubbleType == 4;*/
+                bool isDirectionalBubble = bubbleData is System.Windows.Shapes.Path;
+                if (isDirectionalBubble)
+                {
+                    manuscript.Children.Remove(((System.Windows.Shapes.Path)(bubbleData)));
+                    path = new System.Windows.Shapes.Path();
+                    path.Stroke = System.Windows.Media.Brushes.Black;
+                    path.Fill = System.Windows.Media.Brushes.White;
+                    path.StrokeThickness = 1;
+                    PathGeometry pathGeometry = new PathGeometry();
+                    PathFigureCollection pathFigureCollection = new PathFigureCollection();
+                    PathFigure pathFigure = new PathFigure();
+                    PathSegmentCollection pathSegmentCollection = new PathSegmentCollection();
+                    pathFigure.Segments = pathSegmentCollection;
+                    Point bubbleOrigin = new Point(Canvas.GetLeft(bubble) + bubble.Width / 2, Canvas.GetTop(bubble) + bubble.Height / 2);
+                    Point startBubbleDirectionPoint = new Point(currentPosition.X - 10, currentPosition.Y);
+                    Point endBubbleDirectionPoint = new Point(currentPosition.X + 10, currentPosition.Y);
+                    pathFigure.StartPoint = startBubbleDirectionPoint;
+                    pathFigureCollection.Add(pathFigure);
+                    pathGeometry.Figures = pathFigureCollection;
+                    path.Data = pathGeometry;
+                    PolyBezierSegment mockSegment = new PolyBezierSegment();
+                    mockSegment.IsStroked = false;
+                    mockSegment.Points.Add(startBubbleDirectionPoint);
+                    mockSegment.Points.Add(endBubbleDirectionPoint);
+                    segment = new PolyBezierSegment();
+                    segment.Points.Add(startBubbleDirectionPoint);
+                    segment.Points.Add(currentPosition);
+                    segment.Points.Add(endBubbleDirectionPoint);
+                    segment.IsSmoothJoin = true;
+                    pathSegmentCollection.Add(segment);
+                    pathSegmentCollection.Add(mockSegment);
+                    manuscript.Children.Add(path);
+                    bubble.DataContext = ((System.Windows.Shapes.Path)(path));
+                }
             }
         }
 
@@ -827,6 +949,33 @@ namespace ComicsManager
                         Uri manuscriptTextBoxItemBubbleSource = ((BitmapImage)(manuscriptTextBoxItemFill.ImageSource)).UriSource;
                         rawManuscriptItemBrush += manuscriptTextBoxItemBubbleSource.ToString();
                         rawManuscriptTextboxesContentItem += rawManuscriptItemBrush;
+                        object rawManuscriptItemDirectionData = manuscriptTextBoxItem.DataContext;
+                        string rawManuscriptItemDirection = "|";
+                        if (rawManuscriptItemDirectionData is System.Windows.Shapes.Path)
+                        {
+
+                            System.Windows.Shapes.Path path = ((System.Windows.Shapes.Path)(bubble.DataContext));
+                            PathGeometry pathGeometry = ((PathGeometry)(path.Data));
+                            bool isPathGeometryExists = pathGeometry != null;
+                            if (isPathGeometryExists)
+                            {
+                                PathFigureCollection pathFigures = ((PathFigureCollection)(pathGeometry.Figures));
+                                PathFigure pathFigure = ((PathFigure)(pathFigures[0]));
+                                PathSegmentCollection pathSegments = ((PathSegmentCollection)(pathFigure.Segments));
+                                PolyBezierSegment bubbleDirectionSegment = ((PolyBezierSegment)(pathSegments[0]));
+                                Point bubbleDirectionSegmentFirstPoint = bubbleDirectionSegment.Points[0];
+                                Point bubbleDirectionSegmentSecondPoint = bubbleDirectionSegment.Points[1];
+                                Point bubbleDirectionSegmentThirdPoint = bubbleDirectionSegment.Points[2];
+                                int bubbleDirectionSegmentFirstPointX = ((int)(bubbleDirectionSegmentFirstPoint.X));
+                                int bubbleDirectionSegmentFirstPointY = ((int)(bubbleDirectionSegmentFirstPoint.Y));
+                                int bubbleDirectionSegmentSecondPointX = ((int)(bubbleDirectionSegmentSecondPoint.X));
+                                int bubbleDirectionSegmentSecondPointY = ((int)(bubbleDirectionSegmentSecondPoint.Y));
+                                int bubbleDirectionSegmentThirdPointX = ((int)(bubbleDirectionSegmentThirdPoint.X));
+                                int bubbleDirectionSegmentThirdPointY = ((int)(bubbleDirectionSegmentThirdPoint.Y));
+                                rawManuscriptItemDirection += bubbleDirectionSegmentFirstPointX.ToString() + ":" + bubbleDirectionSegmentFirstPointY.ToString() + "&" + bubbleDirectionSegmentSecondPointX.ToString() + ":" + bubbleDirectionSegmentSecondPointY.ToString() + "&" + bubbleDirectionSegmentThirdPointX.ToString() + ":" + bubbleDirectionSegmentThirdPointY.ToString();
+                            }
+                        }
+                        rawManuscriptTextboxesContentItem += rawManuscriptItemDirection;
                         rawManuscriptBubblesContent += rawManuscriptTextboxesContentItem;
                     }
                 }
@@ -1090,6 +1239,7 @@ namespace ComicsManager
                                     string rawBubbleDataHeight = rawBubbleData[3];
                                     string rawBubbleDataText = rawBubbleData[4].Replace("~", System.Environment.NewLine);
                                     string rawSource = rawBubbleData[5];
+                                    string rawDirection = rawBubbleData[6];
                                     int bubbleXCoordDouble = 0;
                                     int bubbleYCoordDouble = 0;
                                     int bubbleWidth = 0;
@@ -1142,7 +1292,63 @@ namespace ComicsManager
 
                                     bubble.MouseLeftButtonUp += SelectBubbleHandler;
                                     bubble.LostKeyboardFocus += BubbleLostFocusHandler;
+                                    // bool isPointsExists = rawDirection.Length >= 2;
+                                    bool isPointsExists = true;
+                                    if (isPointsExists)
+                                    {
+                                        if (isPointsExists)
+                                        {
+                                            System.Windows.Shapes.Path directionPath = new System.Windows.Shapes.Path();
+                                            PathGeometry pathGeometry = new PathGeometry();
+                                            PathFigureCollection pathFigureCollection = new PathFigureCollection();
+                                            PathFigure pathFigure = new PathFigure();
+                                            PathSegmentCollection pathSegmentCollection = new PathSegmentCollection();
+                                            pathFigure.Segments = pathSegmentCollection;
+                                            
+                                            string[] rawPoints = rawDirection.Split(new Char[] { '&' });
+                                            string[] firstRawPointCoords = rawPoints[0].Split(new Char[] { ':' });
+                                            string firstRawPointXCoord = firstRawPointCoords[0];
+                                            string firstRawPointYCoord = firstRawPointCoords[1];
+                                            string[] secondRawPointCoords = rawPoints[1].Split(new Char[] { ':' });
+                                            string secondRawPointXCoord = secondRawPointCoords[0];
+                                            string secondRawPointYCoord = secondRawPointCoords[1];
+                                            string[] thirdRawPointCoords = rawPoints[2].Split(new Char[] { ':' });
+                                            string thirdRawPointXCoord = thirdRawPointCoords[0];
+                                            string thirdRawPointYCoord = thirdRawPointCoords[1];
 
+                                            int firstPointXCoord = Int32.Parse(firstRawPointXCoord);
+                                            int firstPointYCoord = Int32.Parse(firstRawPointYCoord);
+                                            int secondPointXCoord = Int32.Parse(secondRawPointXCoord);
+                                            int secondPointYCoord = Int32.Parse(secondRawPointYCoord);
+                                            int thirdPointXCoord = Int32.Parse(thirdRawPointXCoord);
+                                            int thirdPointYCoord = Int32.Parse(thirdRawPointYCoord);
+                                            Point startBubbleDirectionPoint = new Point(firstPointXCoord, firstPointYCoord);
+                                            Point currentPosition = new Point(secondPointXCoord, secondPointYCoord);
+                                            Point endBubbleDirectionPoint = new Point(thirdPointXCoord, thirdPointYCoord);
+
+                                            pathFigure.StartPoint = startBubbleDirectionPoint;
+                                            pathFigureCollection.Add(pathFigure);
+                                            pathGeometry.Figures = pathFigureCollection;
+                                            directionPath.Data = pathGeometry;
+                                            PolyBezierSegment mockSegment = new PolyBezierSegment();
+                                            mockSegment.IsStroked = false;
+                                            mockSegment.Points.Add(startBubbleDirectionPoint);
+                                            mockSegment.Points.Add(endBubbleDirectionPoint);
+                                            segment = new PolyBezierSegment();
+                                            segment.Points.Add(startBubbleDirectionPoint);
+                                            segment.Points.Add(currentPosition);
+                                            segment.Points.Add(endBubbleDirectionPoint);
+
+                                            segment.IsSmoothJoin = true;
+                                            pathSegmentCollection.Add(segment);
+                                            pathSegmentCollection.Add(mockSegment);
+                                            manuscript.Children.Add(directionPath);
+                                            directionPath.Stroke = System.Windows.Media.Brushes.Black;
+                                            directionPath.Fill = System.Windows.Media.Brushes.White;
+                                            bubble.DataContext = ((System.Windows.Shapes.Path)(directionPath));
+
+                                        }
+                                    }
                                 }
                             }
                         }

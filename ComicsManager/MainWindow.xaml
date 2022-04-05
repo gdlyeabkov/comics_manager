@@ -106,7 +106,7 @@
 
                                         <Image.Source>
                                             <BitmapImage
-                                                UriSource="Assets\bubble_1.png"
+                                                UriSource="Assets\bubble_1_2.png"
                                             />
                                         </Image.Source>
                                     </Image>
@@ -149,6 +149,20 @@
                                         <Image.Source>
                                             <BitmapImage
                                                 UriSource="Assets\bubble_4.png"
+                                            />
+                                        </Image.Source>
+                                    </Image>
+                                </ComboBoxItem.Content>
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <ComboBoxItem.Content>
+                                    <Image
+                                        Width="100"
+                                        Height="100"
+                                    >
+                                        <Image.Source>
+                                            <BitmapImage
+                                                UriSource="Assets\bubble_5.png"    
                                             />
                                         </Image.Source>
                                     </Image>
@@ -278,6 +292,20 @@
                         <Button
                             Content="Редактировать бабл"
                             DataContext="Редактировать содержмое бабла"
+                            Height="25"
+                            Margin="5 0"
+                            Click="SelectToolHandler"
+                        />
+                        <Button
+                            Content="Направить бабла"
+                            DataContext="Задать направление бабла"
+                            Height="25"
+                            Margin="5 0"
+                            Click="SelectToolHandler"
+                        />
+                        <Button
+                            Content="Создать кадры"
+                            DataContext="Заполнить страницу кадрами"
                             Height="25"
                             Margin="5 0"
                             Click="SelectToolHandler"

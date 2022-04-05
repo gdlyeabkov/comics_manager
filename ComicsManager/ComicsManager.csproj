@@ -120,6 +120,8 @@
     <Resource Include="Assets\screentone_4.jpg" />
     <Resource Include="Assets\screentone_1.jpg" />
     <Resource Include="Assets\bubble_1.png" />
+    <Resource Include="Assets\bubble_1_2.png" />
+    <Resource Include="Assets\bubble_5.png" />
     <Content Include="screentone_1.jfif" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
