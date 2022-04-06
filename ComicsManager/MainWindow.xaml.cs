@@ -121,12 +121,12 @@ namespace ComicsManager
             }
             else if (isApplyEffectTool)
             {
-                Canvas group = new Canvas();
+                // Canvas group = new Canvas();
                 int effectItems = 15;
                 for (int i = 0; i < effectItems; i++)
                 {
                     Line effectItem = new Line();
-                    // manuscript.Children.Add(effectItem);
+                    manuscript.Children.Add(effectItem);
                     effectItem.X1 = effectOrigin.X;
                     effectItem.Y1 = effectOrigin.Y + 1;
                     effectItem.X2 = effectOrigin.X;
@@ -143,9 +143,9 @@ namespace ComicsManager
                     rotateTransform.CenterY = effectOrigin.Y;
                     effectItem.RenderTransform = rotateTransform;
                     effectItem.Stroke = System.Windows.Media.Brushes.Black;
-                    group.Children.Add(effectItem);
+                    // group.Children.Add(effectItem);
                 }
-                manuscript.Children.Add(group);
+                // manuscript.Children.Add(group);
             }
             else if (isBubbleTool)
             {
@@ -187,7 +187,7 @@ namespace ComicsManager
             double frameHeightWithoutMargins = Math.Ceiling(manuscriptHeight / countFramesPerY);
             double frameHeight = frameHeightWithoutMargins - doubleMargin;
 
-            Canvas group = new Canvas();
+            // Canvas group = new Canvas();
 
             for (int i = 0; i < countFramesPerY; i++)
             {
@@ -215,11 +215,12 @@ namespace ComicsManager
                     newFrame.Points.Add(newFrameFourthPoint);
                     newFrame.Fill = System.Windows.Media.Brushes.White;
                     newFrame.Stroke = System.Windows.Media.Brushes.Black;
-                    group.Children.Add(newFrame);
+                    // group.Children.Add(newFrame);
+                    manuscript.Children.Add(newFrame);
                     newFrame.MouseLeftButtonUp += SelectFrameHandler;
                 }
             }
-            manuscript.Children.Add(group);
+            // manuscript.Children.Add(group);
         }
 
         private void GlobalHotKeyHandler(object sender, KeyEventArgs e)
@@ -227,7 +228,6 @@ namespace ComicsManager
             Key currentKey = e.Key;
             Key escKey = Key.Escape;
             Key zKey = Key.Z;
-            Key yKey = Key.Y;
             bool isEscKey = currentKey == escKey;
             bool isZKey = currentKey == zKey;
             bool isCtrlEnabled = (Keyboard.Modifiers & ModifierKeys.Control) > 0;
@@ -248,7 +248,16 @@ namespace ComicsManager
                     UIElement element = history[lastRecordIndex];
                     try
                     {
-                        manuscript.Children.Add(element);
+                        int selectedToolIndex = toolBarControl.SelectedIndex;
+                        bool isManuscriptTool = selectedToolIndex == 0;
+                        if (isManuscriptTool)
+                        {
+                            manuscript.Children.Add(element);
+                        }
+                        else
+                        {
+                            storyBoard.Children.Add(element);
+                        }
                         history.RemoveAt(lastRecordIndex);
                     }
                     catch (Exception)
@@ -283,14 +292,24 @@ namespace ComicsManager
 
         public void Undo ()
         {
-            UIElementCollection manuscriptChildren = manuscript.Children;
-            int countManuscriptChildren = manuscriptChildren.Count;
+            UIElementCollection canvasChildren = null;
+            int selectedToolIndex = toolBarControl.SelectedIndex;
+            bool isManuscriptTool = selectedToolIndex == 0;
+            if (isManuscriptTool)
+            {
+                canvasChildren = manuscript.Children;
+            }
+            else
+            {
+                canvasChildren = storyBoard.Children;
+            }
+            int countManuscriptChildren = canvasChildren.Count;
             bool isHaveChilds = countManuscriptChildren >= 1;
             if (isHaveChilds)
             {
                 int lastChildIndex = countManuscriptChildren - 1;
-                history.Add(manuscriptChildren[lastChildIndex]);
-                manuscriptChildren.RemoveAt(lastChildIndex);
+                history.Add(canvasChildren[lastChildIndex]);
+                canvasChildren.RemoveAt(lastChildIndex);
                 if (isFrameSelected)
                 {
                     ResetFrameBorders();
@@ -347,6 +366,10 @@ namespace ComicsManager
             foreach (UIElement toolBarFooterItem in toolBarFooter.Children)
             {
                 SelectActiveTool(toolBarFooterItem, tool);
+            }
+            foreach (UIElement storyBoardToolBarItem in storyBoardToolBar.Children)
+            {
+                SelectActiveTool(storyBoardToolBarItem, tool);
             }
         }
 
@@ -415,6 +438,7 @@ namespace ComicsManager
 
         private void TouchDownHandler(object sender, MouseButtonEventArgs e)
         {
+            debugger.Speak("касание");
             Point currentPosition = Mouse.GetPosition(manuscript);
             double coordX = currentPosition.X;
             double coordY = currentPosition.Y;
@@ -540,9 +564,13 @@ namespace ComicsManager
                 bool isSetBubbleDirectionTool = activeTool == "Задать направление бабла";
                 if (isPenTool)
                 {
-                    PointCollection pointCollection = sketch.Points;
-                    pointCollection.Add(currentPosition);
-                    sketch.Points = pointCollection;
+                    bool isSketchExists = sketch != null;
+                    if (isSketchExists)
+                    {
+                        PointCollection pointCollection = sketch.Points;
+                        pointCollection.Add(currentPosition);
+                        sketch.Points = pointCollection;
+                    }
                 }
                 else if (isBubbleTool)
                 {
@@ -910,11 +938,13 @@ namespace ComicsManager
 
         public void MoveBubbleDirection(Point currentPosition, double coordX, double coordY, double startX, double startY, double deltaX, double deltaY)
         {   object bubbleData = bubble.DataContext;
-            // сбрасываю направление бабла при его искажении, если этого не сделать будет искажаться само направление бабла
-            manuscript.Children.Remove((UIElement)(bubbleData));
             bool isDirectionalBubble = bubbleData is System.Windows.Shapes.Path;
             if (isDirectionalBubble)
             {
+
+                // сбрасываю направление бабла при его искажении, если этого не сделать будет искажаться само направление бабла
+                manuscript.Children.Remove((UIElement)(bubbleData));
+
                 Point startBubbleDirectionPoint = new Point(currentPosition.X - 10, currentPosition.Y);
                 Point endBubbleDirectionPoint = new Point(currentPosition.X + 10, currentPosition.Y);
                 System.Windows.Shapes.Path path = ((System.Windows.Shapes.Path)(bubble.DataContext));
@@ -1102,6 +1132,18 @@ namespace ComicsManager
             TabControl modeControl = ((TabControl)(sender));
             int modeControlIndex = modeControl.SelectedIndex;
             toolBarControl.SelectedIndex = modeControlIndex;
+            bool isManuscript = modeControlIndex == 0;
+            bool isStoryBoard = modeControlIndex == 1;
+            RoutedEventArgs eventArgs = new RoutedEventArgs();
+            eventArgs.RoutedEvent = Button.ClickEvent;
+            if (isManuscript)
+            {
+                penTool.RaiseEvent(eventArgs);
+            }
+            else
+            {
+                pencilTool.RaiseEvent(eventArgs);
+            }
         }
 
         private void SaveChapterHandler(object sender, RoutedEventArgs e)
@@ -1133,8 +1175,6 @@ namespace ComicsManager
                     foreach (Point storyBoardItemPoint in storyBoardItemPoints)
                     {
                         storyBoardItemPointIndex++;
-                        /*double storyBoardItemPointX = storyBoardItemPoint.X;
-                        double storyBoardItemPointY = storyBoardItemPoint.Y;*/
                         int storyBoardItemPointX = ((int)(storyBoardItemPoint.X));
                         int storyBoardItemPointY = ((int)(storyBoardItemPoint.Y));
                         string rawStoryBoardItemPointX = storyBoardItemPointX.ToString();
@@ -1149,159 +1189,169 @@ namespace ComicsManager
                     rawStoryBoardVisualContent += rawStoryBoardVisualContentItem;
                 }
 
-                string rawManuscriptPolylinesContent = "";
-                int manuscriptItemIndex = -1;
-                foreach (UIElement manuscriptItem in manuscript.Children)
+                string rawManuscriptsContent = "";
+                foreach (TabItem manuscriptPage in manuscriptPages.Items)
                 {
-                    bool isPolyline = manuscriptItem is Polyline;
-                    if (isPolyline)
+                    ScrollViewer manuscriptScroll = ((ScrollViewer)(manuscriptPage.Content));
+                    Canvas someManuscript = ((Canvas)(manuscriptScroll.Content));
+                    
+                    string rawManuscriptPolylinesContent = "";
+                    int manuscriptItemIndex = -1;
+                    foreach (UIElement manuscriptItem in someManuscript.Children)
                     {
-                        Polyline manuscriptPolylineItem = manuscriptItem as Polyline;
-                        manuscriptItemIndex++;
-                        string rawManuscriptPolylinesContentItem = "";
-                        if (manuscriptItemIndex >= 1)
+                        bool isPolyline = manuscriptItem is Polyline;
+                        if (isPolyline)
                         {
-                            rawManuscriptPolylinesContentItem += "@";
-                        }
-                        PointCollection manuscriptItemPoints = manuscriptPolylineItem.Points;
-                        int countPoints = manuscriptItemPoints.Count;
-                        int lastPointIndex = countPoints - 1;
-                        int manuscriptItemPointIndex = -1;
-                        foreach (Point manuscriptItemPoint in manuscriptItemPoints)
-                        {
-                            manuscriptItemPointIndex++;
-                            int manuscriptItemPointX = ((int)(manuscriptItemPoint.X));
-                            int manuscriptItemPointY = ((int)(manuscriptItemPoint.Y));
-                            string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
-                            string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
-                            string rawManuscriptItemPointData = rawManuscriptItemPointX + ":" + rawManuscriptItemPointY;
-                            // rawManuscriptPolylinesContentItem += rawManuscriptItemPointData;
-                            string rawManuscriptItemBrushData = manuscriptPolylineItem.Stroke.ToString();
-                            string rawManuscriptItemData = rawManuscriptItemPointData + ":" + rawManuscriptItemBrushData;
-                            rawManuscriptPolylinesContentItem += rawManuscriptItemData;
-                            if (manuscriptItemPointIndex < lastPointIndex)
+                            Polyline manuscriptPolylineItem = manuscriptItem as Polyline;
+                            manuscriptItemIndex++;
+                            string rawManuscriptPolylinesContentItem = "";
+                            if (manuscriptItemIndex >= 1)
                             {
-                                rawManuscriptPolylinesContentItem += "|";
+                                rawManuscriptPolylinesContentItem += "@";
                             }
-                        }
-                        rawManuscriptPolylinesContent += rawManuscriptPolylinesContentItem;
-                    }
-                }
-
-                string rawManuscriptPolygonesContent = "";
-                manuscriptItemIndex = -1;
-                foreach (UIElement manuscriptItem in manuscript.Children)
-                {
-                    bool isPolygon = manuscriptItem is Polygon;
-                    if (isPolygon)
-                    {
-                        Polygon manuscriptPolygonItem = manuscriptItem as Polygon;
-                        manuscriptItemIndex++;
-                        string rawManuscriptPolygonesContentItem = "";
-                        if (manuscriptItemIndex >= 1)
-                        {
-                            rawManuscriptPolygonesContentItem += "@";
-                        }
-                        PointCollection manuscriptItemPoints = manuscriptPolygonItem.Points;
-                        int countPoints = manuscriptItemPoints.Count;
-                        int lastPointIndex = countPoints - 1;
-                        int manuscriptItemPointIndex = -1;
-                        foreach (Point manuscriptItemPoint in manuscriptItemPoints)
-                        {
-                            manuscriptItemPointIndex++;
-                            int manuscriptItemPointX = ((int)(manuscriptItemPoint.X));
-                            int manuscriptItemPointY = ((int)(manuscriptItemPoint.Y));
-                            string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
-                            string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
-                            string rawManuscriptItemPointData = rawManuscriptItemPointX + ":" + rawManuscriptItemPointY;
-                            rawManuscriptPolygonesContentItem += rawManuscriptItemPointData;
-                            if (manuscriptItemPointIndex < lastPointIndex)
+                            PointCollection manuscriptItemPoints = manuscriptPolylineItem.Points;
+                            int countPoints = manuscriptItemPoints.Count;
+                            int lastPointIndex = countPoints - 1;
+                            int manuscriptItemPointIndex = -1;
+                            foreach (Point manuscriptItemPoint in manuscriptItemPoints)
                             {
-                                rawManuscriptPolygonesContentItem += "|";
-                            }
-                            else
-                            {
-                                string rawManuscriptItemBrush = "|";
-                                Brush manuscriptPolygonItemFill = manuscriptPolygonItem.Fill;
-                                if (manuscriptPolygonItemFill is ImageBrush)
+                                manuscriptItemPointIndex++;
+                                int manuscriptItemPointX = ((int)(manuscriptItemPoint.X));
+                                int manuscriptItemPointY = ((int)(manuscriptItemPoint.Y));
+                                string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
+                                string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
+                                string rawManuscriptItemPointData = rawManuscriptItemPointX + ":" + rawManuscriptItemPointY;
+                                string rawManuscriptItemBrushData = manuscriptPolylineItem.Stroke.ToString();
+                                string rawManuscriptItemData = rawManuscriptItemPointData + ":" + rawManuscriptItemBrushData;
+                                rawManuscriptPolylinesContentItem += rawManuscriptItemData;
+                                if (manuscriptItemPointIndex < lastPointIndex)
                                 {
-                                    ImageBrush manuscriptPolygonItemScreenTone = manuscriptPolygonItemFill as ImageBrush;
-                                    Uri manuscriptPolygonItemScreenToneSource = ((BitmapImage)(manuscriptPolygonItemScreenTone.ImageSource)).UriSource;
-                                    rawManuscriptItemBrush += manuscriptPolygonItemScreenToneSource.ToString();
+                                    rawManuscriptPolylinesContentItem += "|";
                                 }
-                                rawManuscriptPolygonesContentItem += rawManuscriptItemBrush;
                             }
+                            rawManuscriptPolylinesContent += rawManuscriptPolylinesContentItem;
                         }
-                        rawManuscriptPolygonesContent += rawManuscriptPolygonesContentItem;
                     }
-                }
-                bool isFlashBack = false;
-                isFlashBack = ((bool)(flashBackTool.IsChecked));
-                string rawManuscriptFlashBackContent = isFlashBack.ToString();
-                string rawManuscriptBubblesContent = "";
-                foreach (UIElement manuscriptItem in manuscript.Children)
-                {
-                    bool isTextBox = manuscriptItem is TextBox;
-                    if (isTextBox)
-                    {
-                        TextBox manuscriptTextBoxItem = manuscriptItem as TextBox;
-                        manuscriptItemIndex++;
-                        string rawManuscriptTextboxesContentItem = "";
-                        if (manuscriptItemIndex >= 1)
-                        {
-                            rawManuscriptTextboxesContentItem += "@";
-                        }
-                        int manuscriptItemPointX = ((int)(Canvas.GetLeft(manuscriptTextBoxItem)));
-                        int manuscriptItemPointY = ((int)(Canvas.GetTop(manuscriptTextBoxItem)));
-                        string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
-                        string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
-                        string rawManuscriptItemPointData = rawManuscriptItemPointX + "|" + rawManuscriptItemPointY;
-                        rawManuscriptTextboxesContentItem += rawManuscriptItemPointData;
-                        string rawManuscriptItemTextData = manuscriptTextBoxItem.Text.Replace(System.Environment.NewLine, "~");
-                        string rawManuscriptItemWidth = ((int)(manuscriptTextBoxItem.Width)).ToString();
-                        string rawManuscriptItemHeight = ((int)(manuscriptTextBoxItem.Height)).ToString();
-                        string rawManuscriptItemSizeData = rawManuscriptItemWidth + "|" + rawManuscriptItemHeight;
-                        rawManuscriptTextboxesContentItem += "|";
-                        rawManuscriptTextboxesContentItem += rawManuscriptItemSizeData;
-                        rawManuscriptTextboxesContentItem += "|";
-                        rawManuscriptTextboxesContentItem += rawManuscriptItemTextData;
-                        string rawManuscriptItemBrush = "|";
-                        ImageBrush manuscriptTextBoxItemFill = ((ImageBrush)(manuscriptTextBoxItem.Background));
-                        Uri manuscriptTextBoxItemBubbleSource = ((BitmapImage)(manuscriptTextBoxItemFill.ImageSource)).UriSource;
-                        rawManuscriptItemBrush += manuscriptTextBoxItemBubbleSource.ToString();
-                        rawManuscriptTextboxesContentItem += rawManuscriptItemBrush;
-                        object rawManuscriptItemDirectionData = manuscriptTextBoxItem.DataContext;
-                        string rawManuscriptItemDirection = "|";
-                        bool isDirectionalBubble = rawManuscriptItemDirectionData is System.Windows.Shapes.Path;
-                        if (isDirectionalBubble)
-                        {
 
-                            System.Windows.Shapes.Path path = ((System.Windows.Shapes.Path)(manuscriptTextBoxItem.DataContext));
-                            PathGeometry pathGeometry = ((PathGeometry)(path.Data));
-                            bool isPathGeometryExists = pathGeometry != null;
-                            if (isPathGeometryExists)
+                    string rawManuscriptPolygonesContent = "";
+                    manuscriptItemIndex = -1;
+                    foreach (UIElement manuscriptItem in someManuscript.Children)
+                    {
+                        bool isPolygon = manuscriptItem is Polygon;
+                        if (isPolygon)
+                        {
+                            Polygon manuscriptPolygonItem = manuscriptItem as Polygon;
+                            manuscriptItemIndex++;
+                            string rawManuscriptPolygonesContentItem = "";
+                            bool isNotFirstManuscriptIndex = manuscriptItemIndex >= 1;
+                            if (isNotFirstManuscriptIndex)
                             {
-                                PathFigureCollection pathFigures = ((PathFigureCollection)(pathGeometry.Figures));
-                                PathFigure pathFigure = ((PathFigure)(pathFigures[0]));
-                                PathSegmentCollection pathSegments = ((PathSegmentCollection)(pathFigure.Segments));
-                                PolyBezierSegment bubbleDirectionSegment = ((PolyBezierSegment)(pathSegments[0]));
-                                Point bubbleDirectionSegmentFirstPoint = bubbleDirectionSegment.Points[0];
-                                Point bubbleDirectionSegmentSecondPoint = bubbleDirectionSegment.Points[1];
-                                Point bubbleDirectionSegmentThirdPoint = bubbleDirectionSegment.Points[2];
-                                int bubbleDirectionSegmentFirstPointX = ((int)(bubbleDirectionSegmentFirstPoint.X));
-                                int bubbleDirectionSegmentFirstPointY = ((int)(bubbleDirectionSegmentFirstPoint.Y));
-                                int bubbleDirectionSegmentSecondPointX = ((int)(bubbleDirectionSegmentSecondPoint.X));
-                                int bubbleDirectionSegmentSecondPointY = ((int)(bubbleDirectionSegmentSecondPoint.Y));
-                                int bubbleDirectionSegmentThirdPointX = ((int)(bubbleDirectionSegmentThirdPoint.X));
-                                int bubbleDirectionSegmentThirdPointY = ((int)(bubbleDirectionSegmentThirdPoint.Y));
-                                rawManuscriptItemDirection += bubbleDirectionSegmentFirstPointX.ToString() + ":" + bubbleDirectionSegmentFirstPointY.ToString() + "&" + bubbleDirectionSegmentSecondPointX.ToString() + ":" + bubbleDirectionSegmentSecondPointY.ToString() + "&" + bubbleDirectionSegmentThirdPointX.ToString() + ":" + bubbleDirectionSegmentThirdPointY.ToString();
+                                rawManuscriptPolygonesContentItem += "@";
                             }
+                            PointCollection manuscriptItemPoints = manuscriptPolygonItem.Points;
+                            int countPoints = manuscriptItemPoints.Count;
+                            int lastPointIndex = countPoints - 1;
+                            int manuscriptItemPointIndex = -1;
+                            foreach (Point manuscriptItemPoint in manuscriptItemPoints)
+                            {
+                                manuscriptItemPointIndex++;
+                                int manuscriptItemPointX = ((int)(manuscriptItemPoint.X));
+                                int manuscriptItemPointY = ((int)(manuscriptItemPoint.Y));
+                                string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
+                                string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
+                                string rawManuscriptItemPointData = rawManuscriptItemPointX + ":" + rawManuscriptItemPointY;
+                                rawManuscriptPolygonesContentItem += rawManuscriptItemPointData;
+                                bool isLTLastManuscriptItemPointIndex = manuscriptItemPointIndex < lastPointIndex;
+                                if (isLTLastManuscriptItemPointIndex)
+                                {
+                                    rawManuscriptPolygonesContentItem += "|";
+                                }
+                                else
+                                {
+                                    string rawManuscriptItemBrush = "|";
+                                    Brush manuscriptPolygonItemFill = manuscriptPolygonItem.Fill;
+                                    if (manuscriptPolygonItemFill is ImageBrush)
+                                    {
+                                        ImageBrush manuscriptPolygonItemScreenTone = manuscriptPolygonItemFill as ImageBrush;
+                                        Uri manuscriptPolygonItemScreenToneSource = ((BitmapImage)(manuscriptPolygonItemScreenTone.ImageSource)).UriSource;
+                                        rawManuscriptItemBrush += manuscriptPolygonItemScreenToneSource.ToString();
+                                    }
+                                    rawManuscriptPolygonesContentItem += rawManuscriptItemBrush;
+                                }
+                            }
+                            rawManuscriptPolygonesContent += rawManuscriptPolygonesContentItem;
                         }
-                        rawManuscriptTextboxesContentItem += rawManuscriptItemDirection;
-                        rawManuscriptBubblesContent += rawManuscriptTextboxesContentItem;
                     }
+                    bool isFlashBack = false;
+                    isFlashBack = ((bool)(flashBackTool.IsChecked));
+                    string rawManuscriptFlashBackContent = isFlashBack.ToString();
+                    string rawManuscriptBubblesContent = "";
+                    foreach (UIElement manuscriptItem in someManuscript.Children)
+                    {
+                        bool isTextBox = manuscriptItem is TextBox;
+                        if (isTextBox)
+                        {
+                            TextBox manuscriptTextBoxItem = manuscriptItem as TextBox;
+                            manuscriptItemIndex++;
+                            string rawManuscriptTextboxesContentItem = "";
+                            bool isSecondOrGtManuscriptItemIndex = manuscriptItemIndex >= 1;
+                            if (isSecondOrGtManuscriptItemIndex)
+                            {
+                                rawManuscriptTextboxesContentItem += "@";
+                            }
+                            int manuscriptItemPointX = ((int)(Canvas.GetLeft(manuscriptTextBoxItem)));
+                            int manuscriptItemPointY = ((int)(Canvas.GetTop(manuscriptTextBoxItem)));
+                            string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
+                            string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
+                            string rawManuscriptItemPointData = rawManuscriptItemPointX + "|" + rawManuscriptItemPointY;
+                            rawManuscriptTextboxesContentItem += rawManuscriptItemPointData;
+                            string rawManuscriptItemTextData = manuscriptTextBoxItem.Text.Replace(System.Environment.NewLine, "~");
+                            string rawManuscriptItemWidth = ((int)(manuscriptTextBoxItem.Width)).ToString();
+                            string rawManuscriptItemHeight = ((int)(manuscriptTextBoxItem.Height)).ToString();
+                            string rawManuscriptItemSizeData = rawManuscriptItemWidth + "|" + rawManuscriptItemHeight;
+                            rawManuscriptTextboxesContentItem += "|";
+                            rawManuscriptTextboxesContentItem += rawManuscriptItemSizeData;
+                            rawManuscriptTextboxesContentItem += "|";
+                            rawManuscriptTextboxesContentItem += rawManuscriptItemTextData;
+                            string rawManuscriptItemBrush = "|";
+                            ImageBrush manuscriptTextBoxItemFill = ((ImageBrush)(manuscriptTextBoxItem.Background));
+                            Uri manuscriptTextBoxItemBubbleSource = ((BitmapImage)(manuscriptTextBoxItemFill.ImageSource)).UriSource;
+                            rawManuscriptItemBrush += manuscriptTextBoxItemBubbleSource.ToString();
+                            rawManuscriptTextboxesContentItem += rawManuscriptItemBrush;
+                            object rawManuscriptItemDirectionData = manuscriptTextBoxItem.DataContext;
+                            string rawManuscriptItemDirection = "|";
+                            bool isDirectionalBubble = rawManuscriptItemDirectionData is System.Windows.Shapes.Path;
+                            if (isDirectionalBubble)
+                            {
+                                System.Windows.Shapes.Path path = ((System.Windows.Shapes.Path)(manuscriptTextBoxItem.DataContext));
+                                PathGeometry pathGeometry = ((PathGeometry)(path.Data));
+                                bool isPathGeometryExists = pathGeometry != null;
+                                if (isPathGeometryExists)
+                                {
+                                    PathFigureCollection pathFigures = ((PathFigureCollection)(pathGeometry.Figures));
+                                    PathFigure pathFigure = ((PathFigure)(pathFigures[0]));
+                                    PathSegmentCollection pathSegments = ((PathSegmentCollection)(pathFigure.Segments));
+                                    PolyBezierSegment bubbleDirectionSegment = ((PolyBezierSegment)(pathSegments[0]));
+                                    Point bubbleDirectionSegmentFirstPoint = bubbleDirectionSegment.Points[0];
+                                    Point bubbleDirectionSegmentSecondPoint = bubbleDirectionSegment.Points[1];
+                                    Point bubbleDirectionSegmentThirdPoint = bubbleDirectionSegment.Points[2];
+                                    int bubbleDirectionSegmentFirstPointX = ((int)(bubbleDirectionSegmentFirstPoint.X));
+                                    int bubbleDirectionSegmentFirstPointY = ((int)(bubbleDirectionSegmentFirstPoint.Y));
+                                    int bubbleDirectionSegmentSecondPointX = ((int)(bubbleDirectionSegmentSecondPoint.X));
+                                    int bubbleDirectionSegmentSecondPointY = ((int)(bubbleDirectionSegmentSecondPoint.Y));
+                                    int bubbleDirectionSegmentThirdPointX = ((int)(bubbleDirectionSegmentThirdPoint.X));
+                                    int bubbleDirectionSegmentThirdPointY = ((int)(bubbleDirectionSegmentThirdPoint.Y));
+                                    rawManuscriptItemDirection += bubbleDirectionSegmentFirstPointX.ToString() + ":" + bubbleDirectionSegmentFirstPointY.ToString() + "&" + bubbleDirectionSegmentSecondPointX.ToString() + ":" + bubbleDirectionSegmentSecondPointY.ToString() + "&" + bubbleDirectionSegmentThirdPointX.ToString() + ":" + bubbleDirectionSegmentThirdPointY.ToString();
+                                }
+                            }
+                            rawManuscriptTextboxesContentItem += rawManuscriptItemDirection;
+                            rawManuscriptBubblesContent += rawManuscriptTextboxesContentItem;
+                        }
+                    }
+                    string rawManuscriptContent = rawManuscriptPolygonesContent + "\n" + rawManuscriptPolylinesContent + "\n" + rawManuscriptFlashBackContent + "\n" + rawManuscriptBubblesContent;
+                    rawManuscriptsContent += rawManuscriptContent + "\n";
                 }
-                string chapterRawDataContent = storyBoardDescBoxContent + "\n" + rawStoryBoardVisualContent + "\n" + rawManuscriptPolygonesContent + "\n" + rawManuscriptPolylinesContent + "\n" + rawManuscriptFlashBackContent + "\n" + rawManuscriptBubblesContent;
+                string chapterRawDataContent = storyBoardDescBoxContent + "\n" + rawStoryBoardVisualContent + "\n" + rawManuscriptsContent;
                 File.WriteAllText(fullPath, chapterRawDataContent);
             }
         }
@@ -1323,15 +1373,52 @@ namespace ComicsManager
                 string fullPath = ofd.FileName;
                 string[] rawChapterData = File.ReadAllLines(fullPath);
                 int rawChapterDataItemIndex = -1;
+
+                List<int> manuscriptPolygonesContents = new List<int>();
+                int manuscriptPolygonesContentsCursor = 2;
+                List<int> manuscriptPolylinesContents = new List<int>();
+                int manuscriptPolylinesContentsCursor = 3;
+                List<int> manuscriptFlashBackContents = new List<int>();
+                int manuscriptFlashBackContentsCursor = 4;
+                List<int> manuscriptBubblesContents = new List<int>();
+                int manuscriptBubblesContentsCursor = 5;
+                for (int i = 0; i < rawChapterData.Length; i++)
+                {
+                    if (i == manuscriptPolygonesContentsCursor)
+                    {
+                        manuscriptPolygonesContents.Add(i);
+                        manuscriptPolygonesContentsCursor += 4;
+                    }
+                    else if (i == manuscriptPolylinesContentsCursor)
+                    {
+                        manuscriptPolylinesContents.Add(i);
+                        manuscriptPolylinesContentsCursor += 4;
+                    }
+                    else if (i == manuscriptFlashBackContentsCursor)
+                    {
+                        manuscriptFlashBackContents.Add(i);
+                        manuscriptFlashBackContentsCursor += 4;
+                    }
+                    else if (i == manuscriptBubblesContentsCursor)
+                    {
+                        manuscriptBubblesContents.Add(i);
+                        manuscriptBubblesContentsCursor += 4;
+                    }
+                }
+
                 foreach (string rawChapterDataItem in rawChapterData)
                 {
                     rawChapterDataItemIndex++;
                     bool isStoryboardDescContent = rawChapterDataItemIndex == 0;
                     bool isStoryboardVisualContent = rawChapterDataItemIndex == 1;
-                    bool isManuscriptPolygonesContent = rawChapterDataItemIndex == 2;
-                    bool isManuscriptPolylinesContent = rawChapterDataItemIndex == 3;
-                    bool isManuscriptFlashBackContent = rawChapterDataItemIndex == 4;
-                    bool isManuscriptBubblesContent = rawChapterDataItemIndex == 5;
+                    /*bool isManuscriptPolygonesContent = rawChapterDataItemIndex == 2 || rawChapterDataItemIndex == 6 || rawChapterDataItemIndex == 10 || rawChapterDataItemIndex == 14 || rawChapterDataItemIndex == 18;
+                    bool isManuscriptPolylinesContent = rawChapterDataItemIndex == 3 || rawChapterDataItemIndex == 7 || rawChapterDataItemIndex == 11 || rawChapterDataItemIndex == 15 || rawChapterDataItemIndex == 19;
+                    bool isManuscriptFlashBackContent = rawChapterDataItemIndex == 4 || rawChapterDataItemIndex == 8 || rawChapterDataItemIndex == 12 || rawChapterDataItemIndex == 16 || rawChapterDataItemIndex == 20;
+                    bool isManuscriptBubblesContent = rawChapterDataItemIndex == 5 || rawChapterDataItemIndex == 9 || rawChapterDataItemIndex == 13 || rawChapterDataItemIndex == 17 || rawChapterDataItemIndex == 21;*/
+                    bool isManuscriptPolygonesContent = manuscriptPolygonesContents.Contains(rawChapterDataItemIndex);
+                    bool isManuscriptPolylinesContent = manuscriptPolylinesContents.Contains(rawChapterDataItemIndex);
+                    bool isManuscriptFlashBackContent = manuscriptFlashBackContents.Contains(rawChapterDataItemIndex);
+                    bool isManuscriptBubblesContent = manuscriptBubblesContents.Contains(rawChapterDataItemIndex);
                     if (isStoryboardDescContent)
                     {
                         storyBoardDescBox.Text = rawChapterDataItem;
@@ -1375,6 +1462,28 @@ namespace ComicsManager
                     }
                     else if (isManuscriptPolygonesContent)
                     {
+                        bool isOtherPages = rawChapterDataItemIndex >= 6;
+                        if (isOtherPages)
+                        {
+                            /*ScrollViewer manuscriptScroll = new ScrollViewer();
+                            TabItem tab = new TabItem();
+                            tab.Content = manuscriptScroll;
+                            Canvas someManuscript = new Canvas();
+                            manuscriptScroll.Content = someManuscript;
+                            manuscriptPages.Items.Add(tab);
+                            Canvas page = new Canvas();
+                            page.Width = 40;
+                            page.Height = 65;
+                            page.Background = System.Windows.Media.Brushes.White;
+                            Image pagePreview = new Image();
+                            pagePreview.Width = 40;
+                            pagePreview.Height = 65;
+                            pages.Children.Add(page);
+                            page.Children.Add(pagePreview);
+                            pagePreview.MouseLeftButtonDown += SelectPageHandler;*/
+                            AddPage();
+                        }
+
                         string formatedRawChapterDataItem = rawChapterDataItem;
                         bool isErrorsDetected = formatedRawChapterDataItem.Contains("@@");
                         if (isErrorsDetected)
@@ -1458,7 +1567,10 @@ namespace ComicsManager
                                     {
                                         line.Fill = System.Windows.Media.Brushes.White;
                                     }
-                                    manuscript.Children.Add(line);
+                                    int manuscriptIndex = 0;
+                                    // manuscriptIndex = rawChapterDataItemIndex >= 18 ? 4 : rawChapterDataItemIndex >= 14 ? 3 : rawChapterDataItemIndex >= 10 ? 2 : rawChapterDataItemIndex >= 6 ? 1 : 0;
+                                    manuscriptIndex = manuscriptPolygonesContents.IndexOf(rawChapterDataItemIndex);
+                                    ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Children.Add(line);
                                     line.MouseLeftButtonUp += SelectFrameHandler;
                                 }
                             }
@@ -1512,7 +1624,12 @@ namespace ComicsManager
                                     {
                                         line.StrokeThickness = markerThickness;
                                     }
-                                    manuscript.Children.Add(line);
+                                    
+                                    int manuscriptIndex = 0;
+                                    // manuscriptIndex = rawChapterDataItemIndex >= 18 ? 4 : rawChapterDataItemIndex >= 14 ? 3 : rawChapterDataItemIndex >= 10 ? 2 : rawChapterDataItemIndex >= 6 ? 1 : 0;
+                                    manuscriptIndex = manuscriptPolylinesContents.IndexOf(rawChapterDataItemIndex);
+                                    ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Children.Add(line);
+                                
                                 }
                             }
                         }
@@ -1523,7 +1640,12 @@ namespace ComicsManager
                         isFlashBack = Boolean.Parse(rawChapterDataItem);
                         if (isFlashBack)
                         {
-                            manuscript.Background = System.Windows.Media.Brushes.Black;
+                            
+                            int manuscriptIndex = 0;
+                            // manuscriptIndex = rawChapterDataItemIndex >= 18 ? 4 : rawChapterDataItemIndex >= 14 ? 3 : rawChapterDataItemIndex >= 10 ? 2 : rawChapterDataItemIndex >= 6 ? 1 : 0;
+                            manuscriptIndex = manuscriptFlashBackContents.IndexOf(rawChapterDataItemIndex);
+                            ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Background = System.Windows.Media.Brushes.Black;
+                            
                             flashBackTool.IsChecked = true;
                         }
 
@@ -1614,8 +1736,7 @@ namespace ComicsManager
 
                                     bubble.MouseLeftButtonUp += SelectBubbleHandler;
                                     bubble.LostKeyboardFocus += BubbleLostFocusHandler;
-                                    // bool isPointsExists = rawDirection.Length >= 2;
-                                    bool isPointsExists = true;
+                                    bool isPointsExists = rawDirection.Length >= 2;
                                     if (isPointsExists)
                                     {
                                         if (isPointsExists)
@@ -1664,7 +1785,12 @@ namespace ComicsManager
                                             segment.IsSmoothJoin = true;
                                             pathSegmentCollection.Add(segment);
                                             pathSegmentCollection.Add(mockSegment);
-                                            manuscript.Children.Add(directionPath);
+                                            
+                                            int manuscriptIndex = 0;
+                                            // manuscriptIndex = rawChapterDataItemIndex >= 18 ? 4 : rawChapterDataItemIndex >= 14 ? 3 : rawChapterDataItemIndex >= 10 ? 2 : rawChapterDataItemIndex >= 6 ? 1 : 0;
+                                            manuscriptIndex = manuscriptBubblesContents.IndexOf(rawChapterDataItemIndex);
+                                            ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Children.Add(directionPath);
+                                            
                                             directionPath.Stroke = System.Windows.Media.Brushes.Black;
                                             directionPath.Fill = System.Windows.Media.Brushes.White;
                                             bubble.DataContext = ((System.Windows.Shapes.Path)(directionPath));
@@ -1693,11 +1819,18 @@ namespace ComicsManager
         public void SelectPage(Canvas page)
         {
             int pageIndex = pages.Children.IndexOf(page);
-            foreach (Canvas currentPage in pages.Children) {
-                currentPage.Background = System.Windows.Media.Brushes.White;
-            }
+            UnselectPages();
             page.Background = System.Windows.Media.Brushes.LightSkyBlue;
             currentPageIndex = pageIndex;
+            manuscriptPages.SelectedIndex = currentPageIndex;
+        }
+
+        public void UnselectPages()
+        {
+            foreach (Canvas currentPage in pages.Children)
+            {
+                currentPage.Background = System.Windows.Media.Brushes.White;
+            }
         }
 
         private void SelectPreviousPageHandler(object sender, MouseButtonEventArgs e)
@@ -1723,5 +1856,48 @@ namespace ComicsManager
                 SelectPage(currentPage);
             }
         }
+
+        private void AddPageHandler(object sender, MouseButtonEventArgs e)
+        {
+            AddPage();
+        }
+
+        public void AddPage()
+        {
+            UnselectPages();
+            Canvas page = new Canvas();
+            page.Width = 40;
+            page.Height = 65;
+            page.Background = System.Windows.Media.Brushes.LightSkyBlue;
+            page.Margin = new Thickness(5);
+            pages.Children.Add(page);
+            page.MouseLeftButtonDown += SelectPageHandler;
+            Image pagePreview = new Image();
+            pagePreview.Width = 40;
+            pagePreview.Height = 65;
+            page.Children.Add(pagePreview);
+            int countPages = pages.Children.Count;
+            int lastPageIndex = countPages - 1;
+            currentPageIndex = lastPageIndex;
+            TabItem tab = new TabItem();
+            manuscriptPages.Items.Add(tab);
+            manuscriptPages.SelectedIndex = currentPageIndex;
+            
+            manuscript.MouseLeftButtonDown -= TouchDownHandler;
+            manuscript.MouseMove -= TouchMoveHandler;
+            manuscript.MouseLeftButtonUp -= TouchUpHandler;
+            
+            manuscript = new Canvas();
+            ScrollViewer manuscriptScroll = new ScrollViewer();
+            tab.Content = manuscriptScroll;
+            manuscriptScroll.Content = manuscript;
+            manuscript.Background = System.Windows.Media.Brushes.White;
+            manuscript.Cursor = Cursors.Pen;
+            manuscript.ClipToBounds = true;
+            manuscript.MouseLeftButtonDown += TouchDownHandler;
+            manuscript.MouseMove += TouchMoveHandler;
+            manuscript.MouseLeftButtonUp += TouchUpHandler;
+        }
+
     }
 }

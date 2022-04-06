@@ -300,6 +300,7 @@
                             </ComboBoxItem>
                         </ComboBox>
                         <Button
+                            x:Name="penTool"
                             Content="Перо"
                             Height="25"
                             Margin="5 0"
@@ -538,9 +539,11 @@
                 Visibility="Collapsed"    
             >
                 <StackPanel
+                    x:Name="storyBoardToolBar"
                     HorizontalAlignment="Left"    
                 >
                     <Button
+                        x:Name="pencilTool"
                         Content="Карандаш"
                         DataContext="Рисовать раскадровку"
                         Height="25"
@@ -560,6 +563,12 @@
             <materialDesign:PackIcon
                 Margin="25 0"
                 VerticalAlignment="Center"
+                Kind="Add"
+                MouseLeftButtonUp="AddPageHandler"
+            />
+            <materialDesign:PackIcon
+                Margin="25 0"
+                VerticalAlignment="Center"
                 Kind="ArrowLeft"
                 MouseLeftButtonUp="SelectPreviousPageHandler"
             />
@@ -568,7 +577,7 @@
             >
                 <StackPanel
                     x:Name="pages"
-                    Width="1400"
+                    Width="1335"
                     Orientation="Horizontal"    
                 >
                     <Canvas
@@ -576,78 +585,6 @@
                         Height="65"
                         Margin="5"
                         Background="LightSkyBlue"
-                        MouseLeftButtonUp="SelectPageHandler"
-                    >
-                        <Image
-                            Width="40"
-                            Height="65"
-                        >
-                            <Image.Source>
-                                <BitmapImage
-                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
-                                />
-                            </Image.Source>
-                        </Image>
-                    </Canvas>
-                    <Canvas
-                        Width="40"
-                        Height="65"
-                        Margin="5"
-                        Background="White"
-                        MouseLeftButtonUp="SelectPageHandler"
-                    >
-                        <Image
-                            Width="40"
-                            Height="65"
-                        >
-                            <Image.Source>
-                                <BitmapImage
-                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
-                                />
-                            </Image.Source>
-                        </Image>
-                    </Canvas>
-                    <Canvas
-                        Width="40"
-                        Height="65"
-                        Margin="5"
-                        Background="White"
-                        MouseLeftButtonUp="SelectPageHandler"
-                    >
-                        <Image
-                            Width="40"
-                            Height="65"
-                        >
-                            <Image.Source>
-                                <BitmapImage
-                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
-                                />
-                            </Image.Source>
-                        </Image>
-                    </Canvas>
-                    <Canvas
-                        Width="40"
-                        Height="65"
-                        Margin="5"
-                        Background="White"
-                        MouseLeftButtonUp="SelectPageHandler"
-                    >
-                        <Image
-                            Width="40"
-                            Height="65"
-                        >
-                            <Image.Source>
-                                <BitmapImage
-                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
-                                />
-                            </Image.Source>
-                        </Image>
-                    </Canvas>
-                    <Canvas
-                        Width="40"
-                        Height="65"
-                        Margin="5"
-                        Background="White"
                         MouseLeftButtonUp="SelectPageHandler"
                     >
                         <Image
@@ -676,58 +613,64 @@
             <TabItem
                 Header="Манускрипт"    
             >
-                <ScrollViewer
-                    x:Name="background"
+                <TabControl
+                    x:Name="manuscriptPages"
                 >
-                    <Canvas
-                        x:Name="manuscript"
-                        Background="White"    
-                        Cursor="Pen"
-                        ClipToBounds="True"
-                        MouseLeftButtonDown="TouchDownHandler"
-                        MouseMove="TouchMoveHandler"
-                        MouseLeftButtonUp="TouchUpHandler"
-                    >
-                        <Canvas.Clip>
-                            <PathGeometry>
-                                <PathGeometry.Figures>
-                                    <PathFigureCollection>
-                                        <PathFigure
-                                        x:Name="currentFrameOrigin"
-                                    >
-                                            <PathFigure.Segments>
-                                                <PathSegmentCollection>
-                                                    <PolyLineSegment
-                                                    x:Name="currentFrameController"    
-                                                >
-                                                        <PolyLineSegment.Points>
-                                                            <Point
-                                                            X="0"
-                                                            Y="0"
-                                                        />
-                                                            <Point
-                                                            X="10000"
-                                                            Y="0"
-                                                        />
-                                                            <Point
-                                                            X="10000"
-                                                            Y="10000"
-                                                        />
-                                                            <Point
-                                                            X="0"
-                                                            Y="10000"
-                                                        />
-                                                        </PolyLineSegment.Points>
-                                                    </PolyLineSegment>
-                                                </PathSegmentCollection>
-                                            </PathFigure.Segments>
-                                        </PathFigure>
-                                    </PathFigureCollection>
-                                </PathGeometry.Figures>
-                            </PathGeometry>
-                        </Canvas.Clip>
-                    </Canvas>
-                </ScrollViewer>
+                    <TabItem>
+                        <ScrollViewer
+                            x:Name="background"
+                        >
+                            <Canvas
+                                x:Name="manuscript"
+                                Background="White"    
+                                Cursor="Pen"
+                                ClipToBounds="True"
+                                MouseLeftButtonDown="TouchDownHandler"
+                                MouseMove="TouchMoveHandler"
+                                MouseLeftButtonUp="TouchUpHandler"
+                            >
+                                <Canvas.Clip>
+                                    <PathGeometry>
+                                        <PathGeometry.Figures>
+                                            <PathFigureCollection>
+                                                <PathFigure
+                                                x:Name="currentFrameOrigin"
+                                            >
+                                                    <PathFigure.Segments>
+                                                        <PathSegmentCollection>
+                                                            <PolyLineSegment
+                                                            x:Name="currentFrameController"    
+                                                        >
+                                                                <PolyLineSegment.Points>
+                                                                    <Point
+                                                                    X="0"
+                                                                    Y="0"
+                                                                />
+                                                                    <Point
+                                                                    X="10000"
+                                                                    Y="0"
+                                                                />
+                                                                    <Point
+                                                                    X="10000"
+                                                                    Y="10000"
+                                                                />
+                                                                    <Point
+                                                                    X="0"
+                                                                    Y="10000"
+                                                                />
+                                                                </PolyLineSegment.Points>
+                                                            </PolyLineSegment>
+                                                        </PathSegmentCollection>
+                                                    </PathFigure.Segments>
+                                                </PathFigure>
+                                            </PathFigureCollection>
+                                        </PathGeometry.Figures>
+                                    </PathGeometry>
+                                </Canvas.Clip>
+                            </Canvas>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
             </TabItem>
             <TabItem
                 Header="Раскадровка"
@@ -748,9 +691,9 @@
                     >
                         <ScrollViewer>
                             <Canvas
+                                x:Name="storyBoard"    
                                 Height="10000"
                                 Background="Transparent"
-                                x:Name="storyBoard"    
                                 Cursor="Pen"
                                 MouseLeftButtonDown="TouchDownHandler"
                                 MouseMove="TouchMoveHandler"
