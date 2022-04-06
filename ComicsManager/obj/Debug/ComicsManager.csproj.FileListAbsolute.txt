@@ -33,3 +33,10 @@ C:\wpf_projects\ComicsManager\ComicsManager\bin\Debug\sv\Xceed.Wpf.AvalonDock.re
 C:\wpf_projects\ComicsManager\ComicsManager\bin\Debug\zh-Hans\Xceed.Wpf.AvalonDock.resources.dll
 C:\wpf_projects\ComicsManager\ComicsManager\obj\Debug\ComicsManager.csproj.CopyComplete
 C:\wpf_projects\ComicsManager\ComicsManager\obj\Debug\ComicsManager_Content.g.cs
+C:\wpf_projects\ComicsManager\ComicsManager\obj\Debug\Dialogs\CreateFramesDialog.g.cs
+C:\wpf_projects\ComicsManager\ComicsManager\obj\Debug\Dialogs\CreateFramesDialog.baml
+C:\wpf_projects\ComicsManager\ComicsManager\bin\Debug\MaterialDesignColors.dll
+C:\wpf_projects\ComicsManager\ComicsManager\bin\Debug\MaterialDesignThemes.Wpf.dll
+C:\wpf_projects\ComicsManager\ComicsManager\bin\Debug\MaterialDesignColors.pdb
+C:\wpf_projects\ComicsManager\ComicsManager\bin\Debug\MaterialDesignThemes.Wpf.pdb
+C:\wpf_projects\ComicsManager\ComicsManager\bin\Debug\MaterialDesignThemes.Wpf.xml

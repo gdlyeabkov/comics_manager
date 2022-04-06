@@ -5,6 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:ComicsManager"
     xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     mc:Ignorable="d"
     Title="Office Ware Comics Manager"
     Height="450"
@@ -16,7 +17,7 @@
         <KeyBinding
             Key="Z"
             Modifiers="Ctrl"
-            Command="ApplicationCommands.Undo"
+            Command=""
         >
         </KeyBinding>
     </Window.InputBindings>
@@ -49,6 +50,7 @@
             >
                 <StackPanel>
                     <StackPanel
+                        x:Name="toolBarHeader"
                         Orientation="Horizontal"    
                         Margin="5"
                     >
@@ -74,6 +76,227 @@
                             SelectedIndex="0"
                         >
                             <ComboBoxItem>
+                                <ComboBoxItem.Content>
+                                    <Canvas
+                                        Background="White"    
+                                        Height="10000"
+                                        Cursor="Pen"
+                                        MouseLeftButtonUp="TouchUpHandler"
+                                    >
+                                        <Line
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="0"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="25"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="50"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="75"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="100"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="125"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="150"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="175"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="200"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="225"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="250"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="275"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <RotateTransform
+                            Angle="300"
+                            CenterX="100"
+                            CenterY="100"
+                        />
+                                            </Line.RenderTransform>
+                                        </Line>
+                                        <Line
+                    X1="100"
+                    Y1="0"
+                    X2="100"
+                    Y2="100"
+                    Stroke="Black"    
+                >
+                                            <Line.RenderTransform>
+                                                <TransformGroup>
+                                                    <RotateTransform
+                                Angle="325"
+                                CenterX="100"
+                                CenterY="100"
+                            />
+                                                </TransformGroup>
+                                            </Line.RenderTransform>
+                                        </Line>
+                                    </Canvas>
+                                </ComboBoxItem.Content>
                             </ComboBoxItem>
                         </ComboBox>
                         <Button
@@ -175,14 +398,9 @@
                             Height="25"
                             Margin="5 0"
                             IsChecked="False"
+                            DataContext="Переключить флэшбек"
                             Checked="ToggleFlashBackHandler"
                             Unchecked="ToggleFlashBackHandler"
-                        />
-                        <Button
-                            Content="Бабл"
-                            Height="25"
-                            Margin="5 0"
-                            DataContext="Добавить бабл"
                             Click="SelectToolHandler"
                         />
                         <Button
@@ -209,8 +427,10 @@
                             Content="Скринтоны"
                             Height="25"
                             Margin="5 0"
+                            DataContext="Применить скринтоны"
                             Checked="ApplyScreenTonesHandler"
                             Unchecked="ResetScreenTonesHandler"
+                            Click="SelectToolHandler"
                         />
                         <ComboBox
                             x:Name="screenTonesBox"
@@ -285,6 +505,7 @@
                         />
                     </StackPanel>
                     <StackPanel
+                        x:Name="toolBarFooter"
                         Orientation="Horizontal"    
                         Margin="5"
                     >
@@ -331,11 +552,123 @@
             </TabItem>
         </TabControl>
         <StackPanel
+            Orientation="Horizontal"
             DockPanel.Dock="Bottom"    
             Height="75"
-            Background="Blue"
+            Background="Blue"    
         >
-
+            <materialDesign:PackIcon
+                Margin="25 0"
+                VerticalAlignment="Center"
+                Kind="ArrowLeft"
+                MouseLeftButtonUp="SelectPreviousPageHandler"
+            />
+            <ScrollViewer
+                VerticalScrollBarVisibility="Hidden"    
+            >
+                <StackPanel
+                    x:Name="pages"
+                    Width="1400"
+                    Orientation="Horizontal"    
+                >
+                    <Canvas
+                        Width="40"
+                        Height="65"
+                        Margin="5"
+                        Background="LightSkyBlue"
+                        MouseLeftButtonUp="SelectPageHandler"
+                    >
+                        <Image
+                            Width="40"
+                            Height="65"
+                        >
+                            <Image.Source>
+                                <BitmapImage
+                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
+                                />
+                            </Image.Source>
+                        </Image>
+                    </Canvas>
+                    <Canvas
+                        Width="40"
+                        Height="65"
+                        Margin="5"
+                        Background="White"
+                        MouseLeftButtonUp="SelectPageHandler"
+                    >
+                        <Image
+                            Width="40"
+                            Height="65"
+                        >
+                            <Image.Source>
+                                <BitmapImage
+                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
+                                />
+                            </Image.Source>
+                        </Image>
+                    </Canvas>
+                    <Canvas
+                        Width="40"
+                        Height="65"
+                        Margin="5"
+                        Background="White"
+                        MouseLeftButtonUp="SelectPageHandler"
+                    >
+                        <Image
+                            Width="40"
+                            Height="65"
+                        >
+                            <Image.Source>
+                                <BitmapImage
+                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
+                                />
+                            </Image.Source>
+                        </Image>
+                    </Canvas>
+                    <Canvas
+                        Width="40"
+                        Height="65"
+                        Margin="5"
+                        Background="White"
+                        MouseLeftButtonUp="SelectPageHandler"
+                    >
+                        <Image
+                            Width="40"
+                            Height="65"
+                        >
+                            <Image.Source>
+                                <BitmapImage
+                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
+                                />
+                            </Image.Source>
+                        </Image>
+                    </Canvas>
+                    <Canvas
+                        Width="40"
+                        Height="65"
+                        Margin="5"
+                        Background="White"
+                        MouseLeftButtonUp="SelectPageHandler"
+                    >
+                        <Image
+                            Width="40"
+                            Height="65"
+                        >
+                            <Image.Source>
+                                <BitmapImage
+                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
+                                />
+                            </Image.Source>
+                        </Image>
+                    </Canvas>
+                </StackPanel>
+            </ScrollViewer>
+            <materialDesign:PackIcon
+                Margin="25 0"
+                VerticalAlignment="Center"
+                Kind="ArrowRight"    
+                MouseLeftButtonUp="SelectNextPageHandler"
+            />
         </StackPanel>
         <TabControl
             SelectionChanged="ToggleModeHandler"    
@@ -349,7 +682,6 @@
                     <Canvas
                         x:Name="manuscript"
                         Background="White"    
-                        Height="10000"
                         Cursor="Pen"
                         ClipToBounds="True"
                         MouseLeftButtonDown="TouchDownHandler"
