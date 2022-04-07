@@ -19,9 +19,7 @@ using System.Windows.Controls.Primitives;
 
 namespace ComicsManager
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
+    
     public partial class MainWindow : Window
     {
 
@@ -42,7 +40,8 @@ namespace ComicsManager
         public Point effectOrigin;
         public List<UIElement> history;
         public int currentPageIndex = 0;
-        
+        public Image selectedLogo = null;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -85,6 +84,7 @@ namespace ComicsManager
             bool isApplyEffectTool = activeTool == "Добавить эффект";
             bool isBubbleTool = activeTool == "Добавить бабл";
             bool isCreateFramesTool = activeTool == "Заполнить страницу кадрами";
+            bool isLogoTool = activeTool == "Управление логотипом";
             if (isGenerateFrameTool)
             {
                 bool isPolygonExists = polygon != null;
@@ -157,7 +157,63 @@ namespace ComicsManager
                 dialog.Closed += CreateFramesHandler;
                 dialog.Show();
             }
+            else if (isLogoTool)
+            {
+                bool isLogoExists = selectedLogo != null;
+                if (isLogoExists)
+                {
+                    UnSelectLogo();
+                }
+                else
+                {
+                    ImportLogo(currentPosition);
+                }
+            }
             RefreshThumbnail();
+        }
+
+        public void UnSelectLogo ()
+        {
+            SelectLogo(null);
+        }
+
+        public void ImportLogo(Point origin)
+        {
+            Microsoft.Win32.OpenFileDialog ofd = new Microsoft.Win32.OpenFileDialog();
+            ofd.Title = "Выберите лого";
+            ofd.Filter = "Png documents (.png)|*.png";
+            bool? res = ofd.ShowDialog();
+            bool isOpened = res != false;
+            if (isOpened)
+            {
+                string fullPath = ofd.FileName;
+                PngBitmapDecoder imageDecoder = new PngBitmapDecoder(new Uri(fullPath), BitmapCreateOptions.None, BitmapCacheOption.Default);
+                var frames = imageDecoder.Frames;
+                BitmapSource source = frames[0];
+                Image logo = new Image();
+                double originX = origin.X - 50;
+                double originY = origin.Y - 50;
+                Canvas.SetLeft(logo, originX);
+                Canvas.SetTop(logo, originY);
+                logo.Width = 100;
+                logo.Height = 100;
+                logo.BeginInit();
+                logo.Source = source;
+                logo.EndInit();
+                manuscript.Children.Add(logo);
+                logo.MouseLeftButtonDown += SelectLogoHandler;
+            }
+        }
+
+        public void SelectLogoHandler(object sender, EventArgs e)
+        {
+            Image currentLogo = ((Image)(sender));
+            SelectLogo(currentLogo);
+        }
+
+        public void SelectLogo(Image currentLogo)
+        {
+            selectedLogo = currentLogo;
         }
 
         public void CreateFramesHandler(object sender, EventArgs e)
@@ -371,6 +427,17 @@ namespace ComicsManager
             {
                 SelectActiveTool(storyBoardToolBarItem, tool);
             }
+            foreach (MenuItem toolMenuItem in toolMenu.Items)
+            {
+                toolMenuItem.IsChecked = false;
+                object toolData = toolMenuItem.DataContext;
+                string toolName = ((string)(toolData));
+                bool isToolFound = tool == toolName;
+                if (isToolFound)
+                {
+                    toolMenuItem.IsChecked = true;
+                }
+            }
         }
 
         public void SelectActiveTool (UIElement toolBarItem, string tool)
@@ -401,7 +468,10 @@ namespace ComicsManager
                     object toolData = btn.DataContext;
                     string toolName = ((string)(toolData));
                     bool isActiveTool = tool == toolName;
-                    btn.IsChecked = isActiveTool;
+                    /*
+                        Нельзя сбрасывать checked если этот инструмент не выбран это может привести к таким ошибкам как снятие флешбека или скринтонов
+                        btn.IsChecked = isActiveTool;
+                    */
                 }
             }
         }
@@ -481,7 +551,8 @@ namespace ComicsManager
                 manuscript.Children.Add(bubble);
                 bubble.MouseLeftButtonUp += SelectBubbleHandler;
                 bubble.LostKeyboardFocus += BubbleLostFocusHandler;
-                if (((int)(selectedBubblesBoxItemIndex)) != 4)
+                bool isNotDirectionalBubble = selectedBubblesBoxItemIndex != 4;
+                if (isNotDirectionalBubble)
                 {
                     bubble.DataContext = ((int)(selectedBubblesBoxItemIndex));
                 }
@@ -562,6 +633,7 @@ namespace ComicsManager
                 bool isWhitewashTool = activeTool == "Замазать белилами";
                 bool isPencilTool = activeTool == "Рисовать раскадровку";
                 bool isSetBubbleDirectionTool = activeTool == "Задать направление бабла";
+                bool isLogoTool = activeTool == "Управление логотипом";
                 if (isPenTool)
                 {
                     bool isSketchExists = sketch != null;
@@ -667,6 +739,15 @@ namespace ComicsManager
                         }
                     }
                 }
+                else if (isLogoTool)
+                {
+                    bool isLogoExists = selectedLogo != null;
+                    if (isLogoExists)
+                    {
+                        Canvas.SetLeft(selectedLogo, coordX - selectedLogo.Width / 2);
+                        Canvas.SetTop(selectedLogo, coordY - selectedLogo.Height / 2);
+                    }
+                }
                 RefreshThumbnail();
             }
 
@@ -688,6 +769,37 @@ namespace ComicsManager
             thumbnail.BeginInit();
             thumbnail.Source = crop;
             thumbnail.EndInit();
+        }
+
+        public void RefreshThumbnails()
+        {
+            foreach (TabItem manuscriptPage in manuscriptPages.Items)
+            {
+                int manuscriptIndex = manuscriptPages.Items.IndexOf(manuscriptPage);
+                int manuscriptWidth = ((int)(((Canvas)((ScrollViewer)(manuscriptPage.Content)).Content)).RenderSize.Width);
+                int manuscriptHeight = ((int)(((Canvas)((ScrollViewer)(manuscriptPage.Content)).Content)).RenderSize.Height);
+                if (manuscriptWidth <= 0)
+                {
+                    manuscriptWidth = 1000;
+                }
+                if (manuscriptHeight <= 0)
+                {
+                    manuscriptHeight = 1000;
+                }
+                RenderTargetBitmap rtb = new RenderTargetBitmap(manuscriptWidth, manuscriptHeight, 96d, 96d, System.Windows.Media.PixelFormats.Default);
+                rtb.Render(((Canvas)((ScrollViewer)(manuscriptPage.Content)).Content));
+                var crop = new CroppedBitmap(rtb, new Int32Rect(0, 0, ((int)(((Canvas)((ScrollViewer)(manuscriptPage.Content)).Content).ActualWidth)), ((int)(((Canvas)((ScrollViewer)(manuscriptPage.Content)).Content).ActualHeight))));
+                BitmapEncoder imageEncoder = null;
+                BitmapFrame frame = BitmapFrame.Create(rtb);
+                imageEncoder = new PngBitmapEncoder();
+                imageEncoder.Frames.Add(frame);
+                BitmapSource source = frame.Thumbnail;
+                Canvas currentPage = ((Canvas)(pages.Children[manuscriptIndex]));
+                Image thumbnail = ((Image)(currentPage.Children[0]));
+                thumbnail.BeginInit();
+                thumbnail.Source = crop;
+                thumbnail.EndInit();
+            }
         }
 
         public void ApplyScreenTones()
@@ -836,8 +948,6 @@ namespace ComicsManager
                 double coordX = currentPosition.X;
                 double coordY = currentPosition.Y;
                 object bubbleData = bubble.DataContext;
-                /*int bubbleType = ((int)(bubbleData));
-                bool isDirectionalBubble = bubbleType == 4;*/
                 bool isDirectionalBubble = bubbleData is System.Windows.Shapes.Path;
                 if (isDirectionalBubble)
                 {
@@ -1131,9 +1241,13 @@ namespace ComicsManager
         {
             TabControl modeControl = ((TabControl)(sender));
             int modeControlIndex = modeControl.SelectedIndex;
+            ToggleMode(modeControlIndex);
+        }
+
+        public void ToggleMode (int modeControlIndex)
+        {
             toolBarControl.SelectedIndex = modeControlIndex;
             bool isManuscript = modeControlIndex == 0;
-            bool isStoryBoard = modeControlIndex == 1;
             RoutedEventArgs eventArgs = new RoutedEventArgs();
             eventArgs.RoutedEvent = Button.ClickEvent;
             if (isManuscript)
@@ -1143,6 +1257,18 @@ namespace ComicsManager
             else
             {
                 pencilTool.RaiseEvent(eventArgs);
+            }
+            foreach (MenuItem modeControlItem in modeMenu.Items)
+            {
+                modeControlItem.IsChecked = false;
+                object modeData = modeControlItem.DataContext;
+                string rawModeIndex = ((string)(modeData));
+                int modeIndex = Int32.Parse(rawModeIndex);
+                bool isModeFound = modeIndex == modeControlIndex;
+                if (isModeFound)
+                {
+                    modeControlItem.IsChecked = true;
+                }
             }
         }
 
@@ -1154,7 +1280,8 @@ namespace ComicsManager
             sfd.DefaultExt = ".chapter";
             sfd.Filter = "Chaper documents (.chapter)|*.chapter";
             bool? res = sfd.ShowDialog();
-            if (res != false)
+            bool isSaved = res != false;
+            if (isSaved)
             {
                 string fullPath = sfd.FileName;
                 string storyBoardDescBoxContent = storyBoardDescBox.Text;
@@ -1348,7 +1475,41 @@ namespace ComicsManager
                             rawManuscriptBubblesContent += rawManuscriptTextboxesContentItem;
                         }
                     }
-                    string rawManuscriptContent = rawManuscriptPolygonesContent + "\n" + rawManuscriptPolylinesContent + "\n" + rawManuscriptFlashBackContent + "\n" + rawManuscriptBubblesContent;
+                    string rawManuscriptLogosContent = "";
+                    manuscriptItemIndex = -1;
+                    foreach (UIElement manuscriptItem in someManuscript.Children)
+                    {
+                        bool isImage = manuscriptItem is Image;
+                        if (isImage)
+                        {
+                            manuscriptItemIndex++;
+                            Image manuscriptImageItem = manuscriptItem as Image;
+                            string rawManuscriptImagesContentItem = "";
+                            bool isSecondOrGtManuscriptItemIndex = manuscriptItemIndex >= 1;
+                            if (isSecondOrGtManuscriptItemIndex)
+                            {
+                                rawManuscriptImagesContentItem += "@";
+                            }
+                            string rawManuscriptImagesContentItemPointData = "";
+                            double logoCoordX = Canvas.GetLeft(manuscriptItem);
+                            double logoCoordY = Canvas.GetTop(manuscriptItem);
+                            int parsedLogoCoordX = ((int)(logoCoordX));
+                            int parsedLogoCoordY = ((int)(logoCoordY));
+                            string rawLogoCoordX = parsedLogoCoordX.ToString();
+                            string rawLogoCoordY = parsedLogoCoordY.ToString();
+                            rawManuscriptImagesContentItemPointData += rawLogoCoordX;
+                            rawManuscriptImagesContentItemPointData += "|";
+                            rawManuscriptImagesContentItemPointData += rawLogoCoordY;
+                            rawManuscriptImagesContentItem += rawManuscriptImagesContentItemPointData;
+                            rawManuscriptImagesContentItem += "|";
+                            
+                            string logoSource = manuscriptImageItem.Source.ToString();
+
+                            rawManuscriptImagesContentItem += logoSource;
+                            rawManuscriptLogosContent += rawManuscriptImagesContentItem;
+                        }
+                    }
+                    string rawManuscriptContent = rawManuscriptPolygonesContent + "\n" + rawManuscriptPolylinesContent + "\n" + rawManuscriptFlashBackContent + "\n" + rawManuscriptBubblesContent + "\n" + rawManuscriptLogosContent;
                     rawManuscriptsContent += rawManuscriptContent + "\n";
                 }
                 string chapterRawDataContent = storyBoardDescBoxContent + "\n" + rawStoryBoardVisualContent + "\n" + rawManuscriptsContent;
@@ -1358,6 +1519,7 @@ namespace ComicsManager
 
         private void OpenChapterHandler(object sender, RoutedEventArgs e)
         {
+            CloseChapter();
             OpenChapter();
             polygon = null;
         }
@@ -1365,15 +1527,16 @@ namespace ComicsManager
         public void OpenChapter()
         {
             Microsoft.Win32.OpenFileDialog ofd = new Microsoft.Win32.OpenFileDialog();
-            ofd.Title = "Выберите файлы, которые нужно добавить";
+            ofd.Title = "Выберите главу";
             ofd.Multiselect = true;
+            ofd.Filter = "Chapter documents (.chapter)|*.chapter";
             bool? res = ofd.ShowDialog();
-            if (res != false)
+            bool isOpened = res != false;
+            if (isOpened)
             {
                 string fullPath = ofd.FileName;
                 string[] rawChapterData = File.ReadAllLines(fullPath);
                 int rawChapterDataItemIndex = -1;
-
                 List<int> manuscriptPolygonesContents = new List<int>();
                 int manuscriptPolygonesContentsCursor = 2;
                 List<int> manuscriptPolylinesContents = new List<int>();
@@ -1382,43 +1545,65 @@ namespace ComicsManager
                 int manuscriptFlashBackContentsCursor = 4;
                 List<int> manuscriptBubblesContents = new List<int>();
                 int manuscriptBubblesContentsCursor = 5;
-                for (int i = 0; i < rawChapterData.Length; i++)
+                List<int> manuscriptLogosContents = new List<int>();
+                int manuscriptLogosContentsCursor = 6;
+                int rawChapterDataLength = rawChapterData.Length;
+                for (int i = 0; i < rawChapterDataLength; i++)
                 {
-                    if (i == manuscriptPolygonesContentsCursor)
+                    bool isManuscriptPolygonesContentsCursor = i == manuscriptPolygonesContentsCursor;
+                    bool isManuscriptPolylinesContentsCursor = i == manuscriptPolylinesContentsCursor;
+                    bool isManuscriptFlashBacksContentsCursor = i == manuscriptFlashBackContentsCursor;
+                    bool isManuscriptBubblesContentsCursor = i == manuscriptBubblesContentsCursor;
+                    bool isManuscriptLogosContentsCursor = i == manuscriptLogosContentsCursor;
+                    if (isManuscriptPolygonesContentsCursor)
                     {
                         manuscriptPolygonesContents.Add(i);
-                        manuscriptPolygonesContentsCursor += 4;
+                        manuscriptPolygonesContentsCursor += 5;
                     }
-                    else if (i == manuscriptPolylinesContentsCursor)
+                    else if (isManuscriptPolylinesContentsCursor)
                     {
                         manuscriptPolylinesContents.Add(i);
-                        manuscriptPolylinesContentsCursor += 4;
+                        manuscriptPolylinesContentsCursor += 5;
                     }
-                    else if (i == manuscriptFlashBackContentsCursor)
+                    else if (isManuscriptFlashBacksContentsCursor)
                     {
                         manuscriptFlashBackContents.Add(i);
-                        manuscriptFlashBackContentsCursor += 4;
+                        manuscriptFlashBackContentsCursor += 5;
                     }
-                    else if (i == manuscriptBubblesContentsCursor)
+                    else if (isManuscriptBubblesContentsCursor)
                     {
                         manuscriptBubblesContents.Add(i);
-                        manuscriptBubblesContentsCursor += 4;
+                        manuscriptBubblesContentsCursor += 5;
+                    }
+                    else if (isManuscriptLogosContentsCursor)
+                    {
+                        manuscriptLogosContents.Add(i);
+                        manuscriptLogosContentsCursor += 5;
                     }
                 }
+
+                /*
+                 * Неправильное удаление
+                ItemCollection manuscriptPagesItems = manuscriptPages.Items;
+                int countManuscriptPages = manuscriptPagesItems.Count;
+                int countRemovedPages = countManuscriptPages - 1;
+                for (int i = 1; i < countRemovedPages; i++)
+                {
+                    manuscriptPages.Items.RemoveAt(i);
+                    pages.Children.RemoveAt(i);
+                }
+                */
 
                 foreach (string rawChapterDataItem in rawChapterData)
                 {
                     rawChapterDataItemIndex++;
                     bool isStoryboardDescContent = rawChapterDataItemIndex == 0;
                     bool isStoryboardVisualContent = rawChapterDataItemIndex == 1;
-                    /*bool isManuscriptPolygonesContent = rawChapterDataItemIndex == 2 || rawChapterDataItemIndex == 6 || rawChapterDataItemIndex == 10 || rawChapterDataItemIndex == 14 || rawChapterDataItemIndex == 18;
-                    bool isManuscriptPolylinesContent = rawChapterDataItemIndex == 3 || rawChapterDataItemIndex == 7 || rawChapterDataItemIndex == 11 || rawChapterDataItemIndex == 15 || rawChapterDataItemIndex == 19;
-                    bool isManuscriptFlashBackContent = rawChapterDataItemIndex == 4 || rawChapterDataItemIndex == 8 || rawChapterDataItemIndex == 12 || rawChapterDataItemIndex == 16 || rawChapterDataItemIndex == 20;
-                    bool isManuscriptBubblesContent = rawChapterDataItemIndex == 5 || rawChapterDataItemIndex == 9 || rawChapterDataItemIndex == 13 || rawChapterDataItemIndex == 17 || rawChapterDataItemIndex == 21;*/
                     bool isManuscriptPolygonesContent = manuscriptPolygonesContents.Contains(rawChapterDataItemIndex);
                     bool isManuscriptPolylinesContent = manuscriptPolylinesContents.Contains(rawChapterDataItemIndex);
                     bool isManuscriptFlashBackContent = manuscriptFlashBackContents.Contains(rawChapterDataItemIndex);
                     bool isManuscriptBubblesContent = manuscriptBubblesContents.Contains(rawChapterDataItemIndex);
+                    bool isManuscriptLogosContent = manuscriptLogosContents.Contains(rawChapterDataItemIndex);
                     if (isStoryboardDescContent)
                     {
                         storyBoardDescBox.Text = rawChapterDataItem;
@@ -1462,25 +1647,9 @@ namespace ComicsManager
                     }
                     else if (isManuscriptPolygonesContent)
                     {
-                        bool isOtherPages = rawChapterDataItemIndex >= 6;
+                        bool isOtherPages = rawChapterDataItemIndex >= 7;
                         if (isOtherPages)
                         {
-                            /*ScrollViewer manuscriptScroll = new ScrollViewer();
-                            TabItem tab = new TabItem();
-                            tab.Content = manuscriptScroll;
-                            Canvas someManuscript = new Canvas();
-                            manuscriptScroll.Content = someManuscript;
-                            manuscriptPages.Items.Add(tab);
-                            Canvas page = new Canvas();
-                            page.Width = 40;
-                            page.Height = 65;
-                            page.Background = System.Windows.Media.Brushes.White;
-                            Image pagePreview = new Image();
-                            pagePreview.Width = 40;
-                            pagePreview.Height = 65;
-                            pages.Children.Add(page);
-                            page.Children.Add(pagePreview);
-                            pagePreview.MouseLeftButtonDown += SelectPageHandler;*/
                             AddPage();
                         }
 
@@ -1568,7 +1737,6 @@ namespace ComicsManager
                                         line.Fill = System.Windows.Media.Brushes.White;
                                     }
                                     int manuscriptIndex = 0;
-                                    // manuscriptIndex = rawChapterDataItemIndex >= 18 ? 4 : rawChapterDataItemIndex >= 14 ? 3 : rawChapterDataItemIndex >= 10 ? 2 : rawChapterDataItemIndex >= 6 ? 1 : 0;
                                     manuscriptIndex = manuscriptPolygonesContents.IndexOf(rawChapterDataItemIndex);
                                     ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Children.Add(line);
                                     line.MouseLeftButtonUp += SelectFrameHandler;
@@ -1626,7 +1794,6 @@ namespace ComicsManager
                                     }
                                     
                                     int manuscriptIndex = 0;
-                                    // manuscriptIndex = rawChapterDataItemIndex >= 18 ? 4 : rawChapterDataItemIndex >= 14 ? 3 : rawChapterDataItemIndex >= 10 ? 2 : rawChapterDataItemIndex >= 6 ? 1 : 0;
                                     manuscriptIndex = manuscriptPolylinesContents.IndexOf(rawChapterDataItemIndex);
                                     ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Children.Add(line);
                                 
@@ -1642,7 +1809,6 @@ namespace ComicsManager
                         {
                             
                             int manuscriptIndex = 0;
-                            // manuscriptIndex = rawChapterDataItemIndex >= 18 ? 4 : rawChapterDataItemIndex >= 14 ? 3 : rawChapterDataItemIndex >= 10 ? 2 : rawChapterDataItemIndex >= 6 ? 1 : 0;
                             manuscriptIndex = manuscriptFlashBackContents.IndexOf(rawChapterDataItemIndex);
                             ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Background = System.Windows.Media.Brushes.Black;
                             
@@ -1787,7 +1953,6 @@ namespace ComicsManager
                                             pathSegmentCollection.Add(mockSegment);
                                             
                                             int manuscriptIndex = 0;
-                                            // manuscriptIndex = rawChapterDataItemIndex >= 18 ? 4 : rawChapterDataItemIndex >= 14 ? 3 : rawChapterDataItemIndex >= 10 ? 2 : rawChapterDataItemIndex >= 6 ? 1 : 0;
                                             manuscriptIndex = manuscriptBubblesContents.IndexOf(rawChapterDataItemIndex);
                                             ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Children.Add(directionPath);
                                             
@@ -1801,8 +1966,58 @@ namespace ComicsManager
                             }
                         }
                     }
+                    else if (isManuscriptLogosContent)
+                    {
+                        string formatedRawChapterDataItem = rawChapterDataItem;
+                        bool isErrorsDetected = formatedRawChapterDataItem.Contains("@@");
+                        if (isErrorsDetected)
+                        {
+                            formatedRawChapterDataItem = rawChapterDataItem.Replace("@@", "@");
+                        }
+                        string[] rawLogos = formatedRawChapterDataItem.Split(new Char[] { '@' });
+                        int countRawLogos = rawLogos.Length;
+                        bool isRawDataDetected = countRawLogos >= 1;
+                        if (isRawDataDetected)
+                        {
+                            foreach (string rawLogo in rawLogos)
+                            {
+                                Image logo = new Image();
+                                string[] rawLogoData = rawLogo.Split(new Char[] { '|' });
+                                bool isDataDetected = rawLogoData.Length >= 2;
+                                if (isDataDetected)
+                                {
+                                    string rawLogoDataXCoord = rawLogoData[0];
+                                    string rawLogoDataYCoord = rawLogoData[1];
+                                    string rawLogoSource = rawLogoData[2];
+                                    int logoXCoordDouble = 0;
+                                    int logoYCoordDouble = 0;
+                                    bool isGetXCoord = Int32.TryParse(rawLogoDataXCoord, out logoXCoordDouble);
+                                    bool isGetYCoord = Int32.TryParse(rawLogoDataYCoord, out logoYCoordDouble);
+                                    bool isCoordsDetected = isGetXCoord && isGetYCoord;
+                                    if (isCoordsDetected)
+                                    {
+                                        Canvas.SetLeft(logo, logoXCoordDouble);
+                                        Canvas.SetTop(logo, logoYCoordDouble);
+                                    }
+                                    else
+                                    {
+                                        Canvas.SetLeft(logo, 0);
+                                        Canvas.SetTop(logo, 0);
+                                    }
+                                    logo.BeginInit();
+                                    logo.Source = new BitmapImage(new Uri(rawLogoSource));
+                                    logo.EndInit();
+                                }
+                                logo.Width = 100;
+                                logo.Height = 100;
+                                manuscript.Children.Add(logo);
+                                logo.MouseLeftButtonDown += SelectLogoHandler;
+                            }
+                        }
+                    }
                 }
             }
+            RefreshThumbnails();
         }
 
         public RoutedCommand UndoHandler ()
@@ -1823,6 +2038,23 @@ namespace ComicsManager
             page.Background = System.Windows.Media.Brushes.LightSkyBlue;
             currentPageIndex = pageIndex;
             manuscriptPages.SelectedIndex = currentPageIndex;
+            TabItem tab = ((TabItem)(manuscriptPages.Items[currentPageIndex]));
+            ScrollViewer manuscriptScroll = ((ScrollViewer)(tab.Content));
+            manuscript = ((Canvas)(manuscriptScroll.Content));
+            pageBackBtn.Foreground = System.Windows.Media.Brushes.Black;
+            pageNextBtn.Foreground = System.Windows.Media.Brushes.Black;
+            bool isFirstPage = currentPageIndex == 0;
+            int countPages = manuscriptPages.Items.Count;
+            int lastPageIndex = countPages - 1;
+            bool isLastPage = currentPageIndex == lastPageIndex;
+            if (isFirstPage)
+            {
+                pageBackBtn.Foreground = System.Windows.Media.Brushes.LightGray;
+            }
+            else if (isLastPage)
+            {
+                pageNextBtn.Foreground = System.Windows.Media.Brushes.LightGray;
+            }
         }
 
         public void UnselectPages()
@@ -1880,13 +2112,9 @@ namespace ComicsManager
             int lastPageIndex = countPages - 1;
             currentPageIndex = lastPageIndex;
             TabItem tab = new TabItem();
+            tab.Visibility = Visibility.Collapsed;
             manuscriptPages.Items.Add(tab);
             manuscriptPages.SelectedIndex = currentPageIndex;
-            
-            manuscript.MouseLeftButtonDown -= TouchDownHandler;
-            manuscript.MouseMove -= TouchMoveHandler;
-            manuscript.MouseLeftButtonUp -= TouchUpHandler;
-            
             manuscript = new Canvas();
             ScrollViewer manuscriptScroll = new ScrollViewer();
             tab.Content = manuscriptScroll;
@@ -1897,6 +2125,118 @@ namespace ComicsManager
             manuscript.MouseLeftButtonDown += TouchDownHandler;
             manuscript.MouseMove += TouchMoveHandler;
             manuscript.MouseLeftButtonUp += TouchUpHandler;
+            ContextMenu pageContextMenu = new ContextMenu();
+            MenuItem pageContextMenuItem = new MenuItem();
+            pageContextMenuItem.Header = "Удалить";
+            pageContextMenuItem.DataContext = ((int)(currentPageIndex));
+            pageContextMenuItem.Click += RemovePageHandler;
+            pageContextMenu.Items.Add(pageContextMenuItem);
+            page.ContextMenu = pageContextMenu;
+            pageBackBtn.Foreground = System.Windows.Media.Brushes.Black;
+            pageNextBtn.Foreground = System.Windows.Media.Brushes.LightGray;
+        }
+
+        public void RemovePageHandler(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = ((MenuItem)(sender));
+            object pageData = menuItem.DataContext;
+            int index = ((int)(pageData));
+            RemovePage(index);
+        }
+
+        public void RemovePage(int index)
+        {
+            manuscriptPages.Items.RemoveAt(index);
+            pages.Children.RemoveAt(index);
+            foreach (Canvas page in pages.Children)
+            {
+                int pageIndex = pages.Children.IndexOf(page);
+                bool  isOtherPages = pageIndex >= 1;
+                if (isOtherPages)
+                {
+                    ContextMenu pageContextMenu = page.ContextMenu;
+                    MenuItem removePageContextMenuItem = ((MenuItem)(pageContextMenu.Items[0]));
+                    removePageContextMenuItem.DataContext = ((int)(pageIndex));
+                }
+            }
+            Canvas firstManuscript = ((Canvas)(pages.Children[0]));
+            SelectPage(firstManuscript);
+        }
+
+        private void CloseChapterHandler(object sender, RoutedEventArgs e)
+        {
+            CloseChapter();
+        }
+
+        public void CloseChapter()
+        {
+            ItemCollection manuscriptPagesItems = manuscriptPages.Items;
+            int countManuscriptPages = manuscriptPagesItems.Count;
+            bool isCanClose = countManuscriptPages >= 2;
+            if (isCanClose)
+            {
+                int countRemovedPages = countManuscriptPages - 1;
+                for (int i = countRemovedPages; i > 0; i--)
+                {
+                    manuscriptPages.Items.RemoveAt(i);
+                    pages.Children.RemoveAt(i);
+                }
+            }
+            Canvas firstManuscript = ((Canvas)(pages.Children[0]));
+            SelectPage(firstManuscript);
+            manuscript.Children.Clear();
+        }
+
+        private void SelectToolFromMenuHandler(object sender, RoutedEventArgs e)
+        {
+            MenuItem tool = ((MenuItem)(sender));
+            object toolData = tool.DataContext;
+            string toolName = ((string)(toolData));
+            SelectTool(toolName);
+        }
+
+        private void ToggleModeFromMenuHandler(object sender, RoutedEventArgs e)
+        {
+            MenuItem mode = ((MenuItem)(sender));
+            object modeData = mode.DataContext;
+            string rawModeIndex = ((string)(modeData));
+            int modeIndex = Int32.Parse(rawModeIndex);
+            modeControl.SelectedIndex = modeIndex;
+        }
+
+        private void ToggleStoryBoardModeFromMenuHandler(object sender, RoutedEventArgs e)
+        {
+            MenuItem mode = ((MenuItem)(sender));
+            object modeData = mode.DataContext;
+            string rawModeIndex = ((string)(modeData));
+            int modeIndex = Int32.Parse(rawModeIndex);
+            storyBoardModeControl.SelectedIndex = modeIndex;
+        }
+
+        private void ToggleStoryBoardModeHandler(object sender, SelectionChangedEventArgs e)
+        {
+            TabControl modeControl = ((TabControl)(sender));
+            int modeControlIndex = modeControl.SelectedIndex;
+            ToggleStoryBoardMode(modeControlIndex);
+        }
+
+        public void ToggleStoryBoardMode(int modeControlIndex)
+        {
+            toolBarControl.SelectedIndex = modeControlIndex;
+            RoutedEventArgs eventArgs = new RoutedEventArgs();
+            eventArgs.RoutedEvent = Button.ClickEvent;
+            foreach (MenuItem modeControlItem in storyBoardModeMenu.Items)
+            {
+                modeControlItem.IsChecked = false;
+                object modeData = modeControlItem.DataContext;
+                string rawModeIndex = ((string)(modeData));
+                int modeIndex = Int32.Parse(rawModeIndex);
+                bool isModeFound = modeIndex == modeControlIndex;
+                if (isModeFound)
+                {
+                    modeControlItem.IsChecked = true;
+                }
+            }
         }
 
     }

@@ -36,13 +36,158 @@
                     Header="Сохранить главу"
                     Click="SaveChapterHandler"
                 />
+                <MenuItem
+                    Header="Закрыть главу"
+                    Click="CloseChapterHandler"
+                />
+            </MenuItem>
+            <MenuItem
+                x:Name="toolMenu"
+                Header="Инструменты"    
+            >
+                <MenuItem
+                    Header="Создать кадр"
+                    DataContext="Создать кадр"
+                    IsCheckable="True"
+                    IsChecked="True"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Эффекты"
+                    DataContext="Добавить эффект"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Перо"
+                    DataContext="Рисование пером"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Бабл"
+                    DataContext="Добавить бабл"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Флэшбек"
+                    DataContext="Переключить флэшбек"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Маркер"
+                    DataContext="Раскрасить маркером"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Белила"
+                    DataContext="Замазать белилами"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Скринтоны"
+                    DataContext="Применить скринтоны"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Выбрать кадр"
+                    DataContext="Задать активный кадр"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Редактировать бабл"
+                    DataContext="Редактировать содержмое бабла"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Направить бабл"
+                    DataContext="Задать направление бабла"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Создать кадры"
+                    DataContext="Заполнить страницу кадрами"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Лого"
+                    DataContext="Управление логотипом"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Карандаш"
+                    DataContext="Рисовать раскадровку"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="SelectToolFromMenuHandler"
+                />
+            </MenuItem>
+            <MenuItem
+                x:Name="modeMenu"
+                Header="Режимы"    
+            >
+                <MenuItem
+                    Header="Манускрипт"
+                    DataContext="0"
+                    IsCheckable="True"
+                    IsChecked="True"
+                    Click="ToggleModeFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Раскадровка"    
+                    DataContext="1"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="ToggleModeFromMenuHandler"
+                />
+            </MenuItem>
+            <MenuItem
+                x:Name="storyBoardModeMenu"
+                Header="Раскадровка"    
+            >
+                <MenuItem
+                    Header="Сценарий"    
+                    DataContext="0"
+                    IsCheckable="True"
+                    IsChecked="True"
+                    Click="ToggleStoryBoardModeFromMenuHandler"
+                />
+                <MenuItem
+                    Header="Визуально"    
+                    DataContext="1"
+                    IsCheckable="True"
+                    IsChecked="False"
+                    Click="ToggleStoryBoardModeFromMenuHandler"
+                />
             </MenuItem>
         </Menu>
         <TabControl
             x:Name="toolBarControl"
             DockPanel.Dock="Top"
             Height="75"
-            Background="Red"        
+            Background="Transparent"        
             BorderThickness="0"
         >
             <TabItem
@@ -92,206 +237,206 @@
                                         >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="0"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="0"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="25"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="25"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="50"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="50"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="75"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="75"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="100"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="100"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="125"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="125"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="150"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="150"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="175"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="175"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="200"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="200"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="225"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="225"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="250"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="250"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="275"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="275"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <RotateTransform
-                            Angle="300"
-                            CenterX="100"
-                            CenterY="100"
-                        />
+                                                    Angle="300"
+                                                    CenterX="100"
+                                                    CenterY="100"
+                                                />
                                             </Line.RenderTransform>
                                         </Line>
                                         <Line
-                    X1="100"
-                    Y1="0"
-                    X2="100"
-                    Y2="100"
-                    Stroke="Black"    
-                >
+                                            X1="100"
+                                            Y1="0"
+                                            X2="100"
+                                            Y2="100"
+                                            Stroke="Black"    
+                                        >
                                             <Line.RenderTransform>
                                                 <TransformGroup>
                                                     <RotateTransform
-                                Angle="325"
-                                CenterX="100"
-                                CenterY="100"
-                            />
+                                                        Angle="325"
+                                                        CenterX="100"
+                                                        CenterY="100"
+                                                    />
                                                 </TransformGroup>
                                             </Line.RenderTransform>
                                         </Line>
@@ -519,7 +664,7 @@
                             Click="SelectToolHandler"
                         />
                         <Button
-                            Content="Направить бабла"
+                            Content="Направить бабл"
                             DataContext="Задать направление бабла"
                             Height="25"
                             Margin="5 0"
@@ -528,6 +673,13 @@
                         <Button
                             Content="Создать кадры"
                             DataContext="Заполнить страницу кадрами"
+                            Height="25"
+                            Margin="5 0"
+                            Click="SelectToolHandler"
+                        />
+                        <Button
+                            Content="Лого"
+                            DataContext="Управление логотипом"
                             Height="25"
                             Margin="5 0"
                             Click="SelectToolHandler"
@@ -558,7 +710,7 @@
             Orientation="Horizontal"
             DockPanel.Dock="Bottom"    
             Height="75"
-            Background="Blue"    
+            Background="AliceBlue"    
         >
             <materialDesign:PackIcon
                 Margin="25 0"
@@ -567,9 +719,11 @@
                 MouseLeftButtonUp="AddPageHandler"
             />
             <materialDesign:PackIcon
+                x:Name="pageBackBtn"
                 Margin="25 0"
                 VerticalAlignment="Center"
                 Kind="ArrowLeft"
+                Foreground="LightGray"
                 MouseLeftButtonUp="SelectPreviousPageHandler"
             />
             <ScrollViewer
@@ -585,7 +739,7 @@
                         Height="65"
                         Margin="5"
                         Background="LightSkyBlue"
-                        MouseLeftButtonUp="SelectPageHandler"
+                        MouseLeftButtonDown="SelectPageHandler"
                     >
                         <Image
                             Width="40"
@@ -593,7 +747,7 @@
                         >
                             <Image.Source>
                                 <BitmapImage
-                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png"    
+                                    UriSource="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_160x56dp.png" 
                                 />
                             </Image.Source>
                         </Image>
@@ -601,13 +755,16 @@
                 </StackPanel>
             </ScrollViewer>
             <materialDesign:PackIcon
+                x:Name="pageNextBtn"
                 Margin="25 0"
                 VerticalAlignment="Center"
                 Kind="ArrowRight"    
+                Foreground="LightGray"
                 MouseLeftButtonUp="SelectNextPageHandler"
             />
         </StackPanel>
         <TabControl
+            x:Name="modeControl"
             SelectionChanged="ToggleModeHandler"    
         >
             <TabItem
@@ -615,8 +772,12 @@
             >
                 <TabControl
                     x:Name="manuscriptPages"
+                    BorderThickness="0"
+                    Background="Transparent"
                 >
-                    <TabItem>
+                    <TabItem
+                        Visibility="Collapsed"           
+                    >
                         <ScrollViewer
                             x:Name="background"
                         >
@@ -676,7 +837,9 @@
                 Header="Раскадровка"
             >
                 <TabControl
+                    x:Name="storyBoardModeControl"
                     Margin="0 15"    
+                    SelectionChanged="ToggleStoryBoardModeHandler"
                 >
                     <TabItem
                         Header="Сценарий"    
