@@ -220,14 +220,18 @@ namespace ComicsManager
         {
             Dialogs.CreateFramesDialog dialog = ((Dialogs.CreateFramesDialog)(sender));
             object rawData = dialog.DataContext;
-            Dictionary<String, Object> data = ((Dictionary<String, Object>)(rawData));
-            object rawCountFramesPerX = data["countFramesPerX"];
-            object rawCountFramesPerY = data["countFramesPerY"];
-            object rawMargin = data["margin"];
-            int countFramesPerX = ((int)(rawCountFramesPerX));
-            int countFramesPerY = ((int)(rawCountFramesPerY));
-            double margin = ((double)(rawMargin));
-            CreateFrames(countFramesPerX, countFramesPerY, margin);
+            bool isDataExists = rawData != null;
+            if (isDataExists)
+            {
+                Dictionary<String, Object> data = ((Dictionary<String, Object>)(rawData));
+                object rawCountFramesPerX = data["countFramesPerX"];
+                object rawCountFramesPerY = data["countFramesPerY"];
+                object rawMargin = data["margin"];
+                int countFramesPerX = ((int)(rawCountFramesPerX));
+                int countFramesPerY = ((int)(rawCountFramesPerY));
+                double margin = ((double)(rawMargin));
+                CreateFrames(countFramesPerX, countFramesPerY, margin);
+            }
         }
 
         public void CreateFrames (int countFramesPerX, int countFramesPerY, double margin)
@@ -243,7 +247,7 @@ namespace ComicsManager
             double frameHeightWithoutMargins = Math.Ceiling(manuscriptHeight / countFramesPerY);
             double frameHeight = frameHeightWithoutMargins - doubleMargin;
 
-            // Canvas group = new Canvas();
+            Canvas group = new Canvas();
 
             for (int i = 0; i < countFramesPerY; i++)
             {
@@ -271,12 +275,12 @@ namespace ComicsManager
                     newFrame.Points.Add(newFrameFourthPoint);
                     newFrame.Fill = System.Windows.Media.Brushes.White;
                     newFrame.Stroke = System.Windows.Media.Brushes.Black;
-                    // group.Children.Add(newFrame);
-                    manuscript.Children.Add(newFrame);
+                    group.Children.Add(newFrame);
+                    // manuscript.Children.Add(newFrame);
                     newFrame.MouseLeftButtonUp += SelectFrameHandler;
                 }
             }
-            // manuscript.Children.Add(group);
+            manuscript.Children.Add(group);
         }
 
         private void GlobalHotKeyHandler(object sender, KeyEventArgs e)
@@ -508,7 +512,7 @@ namespace ComicsManager
 
         private void TouchDownHandler(object sender, MouseButtonEventArgs e)
         {
-            debugger.Speak("касание");
+            // debugger.Speak("касание");
             Point currentPosition = Mouse.GetPosition(manuscript);
             double coordX = currentPosition.X;
             double coordY = currentPosition.Y;
@@ -1409,6 +1413,66 @@ namespace ComicsManager
                             rawManuscriptPolygonesContent += rawManuscriptPolygonesContentItem;
                         }
                     }
+
+                    foreach (UIElement manuscriptItem in someManuscript.Children)
+                    {
+                        bool isCanvas = manuscriptItem is Canvas;
+                        if (isCanvas)
+                        {
+                            Canvas manuscriptCanvasItem = manuscriptItem as Canvas;
+
+                            manuscriptItemIndex = -1;
+                            foreach (UIElement manuscriptElement in manuscriptCanvasItem.Children)
+                            {
+                                bool isPolygon = manuscriptElement is Polygon;
+                                if (isPolygon)
+                                {
+                                    Polygon manuscriptPolygonItem = manuscriptElement as Polygon;
+                                    manuscriptItemIndex++;
+                                    string rawManuscriptPolygonesContentItem = "";
+                                    bool isNotFirstManuscriptIndex = manuscriptItemIndex >= 1;
+                                    if (isNotFirstManuscriptIndex)
+                                    {
+                                        rawManuscriptPolygonesContentItem += "@";
+                                    }
+                                    PointCollection manuscriptItemPoints = manuscriptPolygonItem.Points;
+                                    int countPoints = manuscriptItemPoints.Count;
+                                    int lastPointIndex = countPoints - 1;
+                                    int manuscriptItemPointIndex = -1;
+                                    foreach (Point manuscriptItemPoint in manuscriptItemPoints)
+                                    {
+                                        manuscriptItemPointIndex++;
+                                        int manuscriptItemPointX = ((int)(manuscriptItemPoint.X));
+                                        int manuscriptItemPointY = ((int)(manuscriptItemPoint.Y));
+                                        string rawManuscriptItemPointX = manuscriptItemPointX.ToString();
+                                        string rawManuscriptItemPointY = manuscriptItemPointY.ToString();
+                                        string rawManuscriptItemPointData = rawManuscriptItemPointX + ":" + rawManuscriptItemPointY;
+                                        rawManuscriptPolygonesContentItem += rawManuscriptItemPointData;
+                                        bool isLTLastManuscriptItemPointIndex = manuscriptItemPointIndex < lastPointIndex;
+                                        if (isLTLastManuscriptItemPointIndex)
+                                        {
+                                            rawManuscriptPolygonesContentItem += "|";
+                                        }
+                                        else
+                                        {
+                                            string rawManuscriptItemBrush = "|";
+                                            Brush manuscriptPolygonItemFill = manuscriptPolygonItem.Fill;
+                                            if (manuscriptPolygonItemFill is ImageBrush)
+                                            {
+                                                ImageBrush manuscriptPolygonItemScreenTone = manuscriptPolygonItemFill as ImageBrush;
+                                                Uri manuscriptPolygonItemScreenToneSource = ((BitmapImage)(manuscriptPolygonItemScreenTone.ImageSource)).UriSource;
+                                                rawManuscriptItemBrush += manuscriptPolygonItemScreenToneSource.ToString();
+                                            }
+                                            rawManuscriptPolygonesContentItem += rawManuscriptItemBrush;
+                                        }
+                                    }
+                                    rawManuscriptPolygonesContent += rawManuscriptPolygonesContentItem;
+                                }
+                            }
+
+                        }
+                    }
+
                     bool isFlashBack = false;
                     isFlashBack = ((bool)(flashBackTool.IsChecked));
                     string rawManuscriptFlashBackContent = isFlashBack.ToString();
@@ -2170,6 +2234,9 @@ namespace ComicsManager
 
         public void CloseChapter()
         {
+
+            history.Clear();
+
             ItemCollection manuscriptPagesItems = manuscriptPages.Items;
             int countManuscriptPages = manuscriptPagesItems.Count;
             bool isCanClose = countManuscriptPages >= 2;
