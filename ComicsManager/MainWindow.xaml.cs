@@ -1873,18 +1873,21 @@ namespace ComicsManager
                     }
                     else if (isManuscriptFlashBackContent)
                     {
-                        bool isFlashBack = false;
-                        isFlashBack = Boolean.Parse(rawChapterDataItem);
-                        if (isFlashBack)
+                        bool isFlashBackValue = rawChapterDataItem == "True" || rawChapterDataItem == "False";
+                        if (isFlashBackValue)
                         {
-                            
-                            int manuscriptIndex = 0;
-                            manuscriptIndex = manuscriptFlashBackContents.IndexOf(rawChapterDataItemIndex);
-                            ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Background = System.Windows.Media.Brushes.Black;
-                            
-                            flashBackTool.IsChecked = true;
-                        }
+                            bool isFlashBack = false;
+                            isFlashBack = Boolean.Parse(rawChapterDataItem);
+                            if (isFlashBack)
+                            {
 
+                                int manuscriptIndex = 0;
+                                manuscriptIndex = manuscriptFlashBackContents.IndexOf(rawChapterDataItemIndex);
+                                ((Canvas)(((ScrollViewer)(((TabItem)(manuscriptPages.Items[manuscriptIndex])).Content)).Content)).Background = System.Windows.Media.Brushes.Black;
+
+                                flashBackTool.IsChecked = true;
+                            }
+                        }
                     }
                     else if (isManuscriptBubblesContent)
                     {

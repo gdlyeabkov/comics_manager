@@ -846,7 +846,7 @@
                     >
                         <TextBox
                             x:Name="storyBoardDescBox"
-                            AcceptsReturn="True"    
+                            AcceptsReturn="False"    
                         />
                     </TabItem>
                     <TabItem
