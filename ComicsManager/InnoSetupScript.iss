@@ -3,7 +3,7 @@
 
 #define MyAppName "ComicsManager"
 #define MyAppVerName "ComicsManager 1.0"
-#define MyAppPublisher "Office ware game manager"
+#define MyAppPublisher "Office ware"
 #define MyAppExeName "ComicsManager.exe"
 
 [Setup]
@@ -25,7 +25,7 @@ Name: "english"; MessagesFile: "compiler:Languages\English.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\wpf_projects\ComicsManager\ComicsManager\bin\Release\ComicsManager.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\wpf_projects\ComicsManager\ComicsManager\bin\Release\*"; DestDir: "{app}"; Flags: ignoreversion
 ; ОТМЕТЬТЕ: Не используйте "Флажки: Проигнорировать версию" на любых общедоступных системных файлах
 
 [Icons]

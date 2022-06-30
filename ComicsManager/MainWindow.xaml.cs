@@ -1548,29 +1548,35 @@ namespace ComicsManager
                         {
                             manuscriptItemIndex++;
                             Image manuscriptImageItem = manuscriptItem as Image;
-                            string rawManuscriptImagesContentItem = "";
-                            bool isSecondOrGtManuscriptItemIndex = manuscriptItemIndex >= 1;
-                            if (isSecondOrGtManuscriptItemIndex)
-                            {
-                                rawManuscriptImagesContentItem += "@";
-                            }
-                            string rawManuscriptImagesContentItemPointData = "";
-                            double logoCoordX = Canvas.GetLeft(manuscriptItem);
-                            double logoCoordY = Canvas.GetTop(manuscriptItem);
-                            int parsedLogoCoordX = ((int)(logoCoordX));
-                            int parsedLogoCoordY = ((int)(logoCoordY));
-                            string rawLogoCoordX = parsedLogoCoordX.ToString();
-                            string rawLogoCoordY = parsedLogoCoordY.ToString();
-                            rawManuscriptImagesContentItemPointData += rawLogoCoordX;
-                            rawManuscriptImagesContentItemPointData += "|";
-                            rawManuscriptImagesContentItemPointData += rawLogoCoordY;
-                            rawManuscriptImagesContentItem += rawManuscriptImagesContentItemPointData;
-                            rawManuscriptImagesContentItem += "|";
                             
-                            string logoSource = manuscriptImageItem.Source.ToString();
+                            ImageSource logo = manuscriptImageItem.Source;
+                            bool isHaveLogo = logo != null;
+                            if (isHaveLogo)
+                            {
+                                string rawManuscriptImagesContentItem = "";
+                                bool isSecondOrGtManuscriptItemIndex = manuscriptItemIndex >= 1;
+                                if (isSecondOrGtManuscriptItemIndex)
+                                {
+                                    rawManuscriptImagesContentItem += "@";
+                                }
+                                string rawManuscriptImagesContentItemPointData = "";
+                                double logoCoordX = Canvas.GetLeft(manuscriptItem);
+                                double logoCoordY = Canvas.GetTop(manuscriptItem);
+                                int parsedLogoCoordX = ((int)(logoCoordX));
+                                int parsedLogoCoordY = ((int)(logoCoordY));
+                                string rawLogoCoordX = parsedLogoCoordX.ToString();
+                                string rawLogoCoordY = parsedLogoCoordY.ToString();
+                                rawManuscriptImagesContentItemPointData += rawLogoCoordX;
+                                rawManuscriptImagesContentItemPointData += "|";
+                                rawManuscriptImagesContentItemPointData += rawLogoCoordY;
+                                rawManuscriptImagesContentItem += rawManuscriptImagesContentItemPointData;
+                                rawManuscriptImagesContentItem += "|";
 
-                            rawManuscriptImagesContentItem += logoSource;
-                            rawManuscriptLogosContent += rawManuscriptImagesContentItem;
+                                string logoSource = logo.ToString();
+
+                                rawManuscriptImagesContentItem += logoSource;
+                                rawManuscriptLogosContent += rawManuscriptImagesContentItem;
+                            }
                         }
                     }
                     string rawManuscriptContent = rawManuscriptPolygonesContent + "\n" + rawManuscriptPolylinesContent + "\n" + rawManuscriptFlashBackContent + "\n" + rawManuscriptBubblesContent + "\n" + rawManuscriptLogosContent;
